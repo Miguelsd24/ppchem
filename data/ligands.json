@@ -1,0 +1,224 @@
+{
+    "ligands": {
+        "H": {
+        "name": "hydrido",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["H"],
+        "charge": -1
+        },
+        "F": {
+        "name": "fluoro",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["F"],
+        "charge": -1
+        },
+        "Cl": {
+        "name": "chloro",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["Cl"],
+        "charge": -1
+        },
+        "Br": {
+        "name": "bromo",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["Br"],
+        "charge": -1
+        },
+        "I": {
+        "name": "iodo",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["I"],
+        "charge": -1
+        },
+        "N": {
+        "name": "nitrido",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -3
+        },
+        "N3": {
+        "name": "azido",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "CN": {
+        "name": "cyano",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["C"],
+        "charge": -1
+        },
+        "NC": {
+        "name": "cyano",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "SCN": {
+        "name": "thiocyano",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["S"],
+        "charge": -1
+        },
+        "NCS": {
+        "name": "isothiocyano",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "OH": {
+        "name": "hydroxo",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["O"],
+        "charge": -1
+        },
+        "H2O": {
+        "name": "aqua",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["O"]
+        },
+        "CO": {
+        "name": "carbonyl",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["C"]
+        },
+        "CS": {
+        "name": "thiocarbonyl",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["C"]
+        },
+        "NO+": {
+        "name": "nitrosyl",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": 1
+        },
+        "NO": {
+        "name": "nitrosyl",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "NO2": {
+        "name": "nitro",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "ONO": {
+        "name": "nitrito",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["O"],
+        "charge": -1
+        },
+        "PR3": {
+        "name": "phosphine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["P"]
+        },
+        "C10H8N2": {
+        "name": "2,2'-pyridine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "abbr": "bipy"
+        },
+        "NH3": {
+        "name": "ammine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["N"]
+        },
+        "MeNH2": {
+        "name": "methylamine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["N"]
+        },
+        "NH2": {
+        "name": "amido",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -1
+        },
+        "NH": {
+        "name": "imido",
+        "type": "X",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "charge": -2
+        },
+        "C2H8N2": {
+        "name": "ethylenediamine",
+        "type": "L",
+        "denticity": 2,
+        "donor_atoms": ["N"],
+        "abbr": "en"
+        },
+        "C12H24O6": {
+        "name": "18-crown-6",
+        "type": "L",
+        "denticity": 6,
+        "donor_atoms": ["O"],
+        "abbr": "18C6"
+        },
+        "C5H11N": {
+        "name": "piperidine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "abbr": "pip"
+        },
+        "C5H5N": {
+        "name": "pyridine",
+        "type": "L",
+        "denticity": 1,
+        "donor_atoms": ["N"],
+        "abbr": "py"
+        },
+        "C2O4": {
+        "name": "oxalato",
+        "type": "X",
+        "denticity": 2,
+        "donor_atoms": ["O"],
+        "charge": -2,
+        "abbr": "ox"
+        },
+        "C10H16N2O8": {
+        "name": "ethylenediaminetetraacetato",
+        "type": "X",
+        "denticity": 6,
+        "donor_atoms": ["N", "N", "O", "O", "O", "O"],
+        "charge": -4,
+        "abbr": "edta"
+        },
+        "C5H7O2": {
+        "name": "acetylacetonato",
+        "type": "X",
+        "denticity": 2,
+        "donor_atoms": ["O"],
+        "charge": -1,
+        "abbr": "acac"
+        }
+    }
+}
