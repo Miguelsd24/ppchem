@@ -32,7 +32,7 @@ import coordchempy
 ### Formulas input rules
 One of the main inputs of this package is the formula of the coordination complexes. To ensure compatibility with the code, the formula must follow specific rules:
 - The coordination sphere must be indicated by brackets
-- The coordination sphere charge must be indicated outside the brackets at the end of the formula. Nothing corresponds to a neutral charge and both ±1 and 1± are equivalent
+- The coordination sphere charge must be indicated outside the brackets at the end of the formula. Nothing corresponds to a neutral charge and both notations; ±x / x± where x is the charge are equivalent
 - The metal come first, inside the brackets, with its stoechiometric coefficient right after. As mentionned before this package contrains this coefficient to 1 or 2, any other values will lead to errors.
 - The ligands come after the metals and are indicated inside parenthesis, the stoechiometric coefficient comes outside the parenthesis after the ligand
 - Bridging ligand are announced by a prefix "m-" which lies inside the parethesis
