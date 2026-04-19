@@ -87,19 +87,22 @@
     "name": "aqua",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["O"]
+    "donor_atoms": ["O"],
+    "charge": 0    
     },
     "CO": {
     "name": "carbonyl",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["C"]
+    "donor_atoms": ["C"],
+    "charge": 0 
     },
     "CS": {
     "name": "thiocarbonyl",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["C"]
+    "donor_atoms": ["C"],
+    "charge": 0
     },
     "NO+": {
     "name": "nitrosyl",
@@ -132,26 +135,30 @@
     "name": "phosphine",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["P"]
+    "donor_atoms": ["P"],
+    "charge": 0
     },
     "C10H8N2": {
     "name": "2,2'-pyridine",
     "type": "L",
     "denticity": 1,
     "donor_atoms": ["N"],
-    "abbr": "bipy"
+    "abbr": "bipy",
+    "charge": 0
     },
     "NH3": {
     "name": "ammine",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["N"]
+    "donor_atoms": ["N"],
+    "charge": 0
     },
     "MeNH2": {
     "name": "methylamine",
     "type": "L",
     "denticity": 1,
-    "donor_atoms": ["N"]
+    "donor_atoms": ["N"],
+    "charge": 0
     },
     "NH2": {
     "name": "amido",
@@ -172,28 +179,32 @@
     "type": "L",
     "denticity": 2,
     "donor_atoms": ["N"],
-    "abbr": "en"
+    "abbr": "en",
+    "charge": 0
     },
     "C12H24O6": {
     "name": "18-crown-6",
     "type": "L",
     "denticity": 6,
     "donor_atoms": ["O"],
-    "abbr": "18C6"
+    "abbr": "18C6",
+    "charge": 0
     },
     "C5H11N": {
     "name": "piperidine",
     "type": "L",
     "denticity": 1,
     "donor_atoms": ["N"],
-    "abbr": "pip"
+    "abbr": "pip",
+    "charge": 0
     },
     "C5H5N": {
     "name": "pyridine",
     "type": "L",
     "denticity": 1,
     "donor_atoms": ["N"],
-    "abbr": "py"
+    "abbr": "py",
+    "charge": 0
     },
     "C2O4": {
     "name": "oxalato",
