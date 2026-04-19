@@ -145,6 +145,6 @@ def analyse_complexe(formula):
     print(f"Electron count : {electron_count(formula)}")
 
 
-    
+
 print(analyse_complexe("[Rh(PR3)3(CO)]+1"))
 print(analyse_complexe("[Fe(CO)5​]"))
