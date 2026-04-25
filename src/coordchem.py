@@ -1,8 +1,13 @@
 import sys
 import re
-from rdkit import Chem
 import json
 from pathlib import Path
+
+# Allows only one error line when running into an error in the jupyter notebook
+def hide_traceback(exc_tuple=None, filename=None, tb_offset=None, exception_only=False, running_compiled_code=False):
+    etype, value, tb = sys.exc_info()
+    return print(f"{value}")
+get_ipython().showtraceback = hide_traceback # This replaces the default Jupyter error handler with our clean one-liner
 
 # Loading the data from the metals/ligands.json file
 
@@ -14,152 +19,226 @@ with open(BASE_DIR / "data" / "metals.json") as f:
 with open(BASE_DIR / "data" / "ligands.json") as f:
     data_ligands = json.load(f)
 
-# The first part of this file focuses on the formula processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...)
+# The first part of this file focuses on the formula format processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...)
 
-# Function which extract a list of the metal/s from a given formula. It also verifies if the metal/s is/are in the json database
-def extract_metal(formula):
+# Function which extract the metal and its stoechiometric coefficient from a given formula. It also verifies if the metal is in the json database
+def parse_metal(formula):
+
 
     # 1. The metal string is isolated possibly along with the stoechiometric coefficient. Also, we verify that the input str has the appropriate format
     start = formula.find("[")
     end = formula.find("(")
 
-    if start == -1 or end == -1:
-        raise ValueError("Wrong input format.")
+    if start == -1 or end == -1  or start >= end:
+        raise ValueError("Error: Wrong input format.")
 
     clean_formula = formula[start + 1:end]
-    match = re.match(r"^([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) # We use re.match() to find the metal/coefficient pattern
+
+    # 2. We use re.match() to find the metal/coefficient pattern
+
+    match = re.match(r"^([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
 
     if match == None:
-        raise ValueError("Wrong input format.")
+        raise ValueError("Error: Wrong input format.")
 
     # 2. We test if the metal is present in the database and treat the output
     metal = match.group(1)
     if metal not in data_metals:
-        raise ValueError(f"Metal {metal} is not in the database.")
+        raise ValueError(f"Error: Metal {metal} is not in the database.")
 
     # 3. We test if the coefficient has the appropriate value or format and treat the output
     num = match.group(2)
-    if num == None:
-        coeff = 1
-    elif int(num) > 2:
-        raise ValueError("Invalid coefficient, the coordination compound has more than two metal centers.")
-    else:
-        coeff = int(num)
+    coeff = test_string_for_int(num)
+    if coeff > 2:
+        raise ValueError("Error: Invalid coefficient, the coordination compound has more than two metal centers.")
+    
+    # 4. We put the metal and its coefficient in a list and return it
+    metals = []
+    metals.extend([metal]*coeff)
+    return metals
 
-    return metal, coeff
-
+# Function which find ligands by name or abbr in the database
+def find_ligand(ligand_input):
+    # 1. Direct verification
+    if ligand_input in data_ligands: 
+        return ligand_input
+    # 2. Verification by abbreviation
+    for ligand_key, properties in data_ligands.items():
+        if "abbr" in properties and properties["abbr"] == ligand_input:
+            return ligand_key
+    return False
 
 # Function which extract a list of the ligand/s from a given raw formula. It also verifies if the ligand/s is/are in the json database
-def extract_ligands(formula):
+def parse_ligands(formula):
 
-    # 1. The ligands string is isolated
-    clean_formula = formula.replace("[", "").replace("]", "")
-    parenthesis_index = clean_formula.find("(")   
-    ligands = clean_formula[parenthesis_index:]
-    ligands = re.findall(r"\((.*?)\)(\d*)", clean_formula)
+    # 1. The ligand string is isolated possibly along with the stoechiometric coefficient. Also, we verify that the input str has the appropriate format
+    start = formula.find("(")
+    end = formula.find("]")
 
-    # 2. For each ligand in the ligands list, we isolate the stoechiometric coefficient and test if the ligands are in the database.
+    if start == -1 or end == -1  or start >= end:
+        raise ValueError("Error: Wrong input format.")
+
+    # 2. Using re.findall we isolate each ligand according to the correct format
+    clean_formula = formula[start:end]
+    match = re.findall(r"\((.*?)\)(\d*)", clean_formula)
+
+    if match == None:
+        raise ValueError("Error: Wrong input format.")
+
+    # 3. For each ligand in the ligands list, we isolate the stoechiometric coefficient and test if the ligands are in the database
     result = []
-    for ligand, n in ligands:
-        if ligand not in data_ligands:
-            sys.exit(f"Error: Ligand {ligand} not in the database")
-        n = int(n) if n else 1
-        result.extend([ligand] * n)
+    for ligand, n in match:
+        if ligand == "":
+            raise ValueError(f"Error: At leat one ligand is missing in the formula")
+        if find_ligand(ligand) == False:
+            raise ValueError(f"Error: Ligand {ligand} not in the database")
+        else:
+            coeff = test_string_for_int(n)
+            result.extend([find_ligand(ligand)] * coeff)
+
     return result
 
-# Fonction which transforms a charge string (i.e. "2+, +2, -2, 2-") to a negative or positive int.
+# Function which transforms a charge string (i.e. "+, -, X+, +X, -X, X-") to a negative or positive int
 def parse_charge(charge):
 
+    # 1. Case with nothing
     if charge is None:
         return 0
-
     charge = charge.strip()
 
-    # Cas déjà simple
+    # 2. Case without sign
     try:
         return int(charge)
     except ValueError:
         pass
 
-    # Cas avec signe à la fin (ex: 2+, 1-)
+    # 3. Case only the sign
+    if charge == "+":
+        return 1
+    if charge == "-":
+        return -1
+
+    # 4. Case with end sign (ex: 2+, 1-)
     match = re.match(r"(\d+)([+-])", charge)
     if match:
         value = int(match.group(1))
         sign = match.group(2)
         return value if sign == "+" else -value
 
-    # Cas avec signe au début (ex: +3, -2)
+    # 5. Case with start sign (ex: +3, -2)
     match = re.match(r"([+-])(\d+)", charge)
     if match:
         sign = match.group(1)
         value = int(match.group(2))
         return value if sign == "+" else -value
 
-    raise ValueError(f"Format de charge invalide: {charge}")
+    raise ValueError(f"Error: Invalid format charge for the coordination sphere: {charge}")
 
-# 
+# Function which test if a string is a int or float or str in order to return the good stoechiometric coefficient
+def test_string_for_int(num):
+
+    if num is None or num == "":
+        return 1
+    
+    try:
+        coeff = float(num)
+    except (ValueError, TypeError):
+        raise ValueError("Error: Coefficient must be numeric")
+
+    if not coeff.is_integer():
+       raise ValueError("Error: Invalid coefficient, the coefficient cannot be a float") 
+
+    coeff = int(num)
+
+    if coeff == 0:
+        raise ValueError("Error: Invalid coefficient, coefficients cannot be zero")    
+    elif coeff < 0:
+        raise ValueError("Error: Invalid coefficient, coefficients cannot be negative")    
+    
+    return coeff
+
+# Function which return the charge of the coordination sphere as an int
 def complexe_charge(formula):
     charge = re.search(r"\]([0-9+-]+)", formula)
     if not charge:
         return 0
     return parse_charge(charge.group(1))
 
-# 
-def extract_elements(formula):
+# Function which put the metal and ligands in a same list with their respective stoechiometric coefficient
+def parse_elements(formula):
     elements = []
-    elements.extend(extract_ligands(formula))
-    elements.extend(extract_metal(formula))
+    elements.extend(parse_ligands(formula))
+    elements.extend(parse_metal(formula))
     return elements
 
-# 
+# Function which calulate the sum of all ligands' charges
 def ligands_charge(formula):
-    ligands = extract_ligands(formula)    
-    charge = 0
-    for ligand in ligands:
-        charge += data_ligands[ligand]["charge"]
+    ligands = parse_ligands(formula)  
+    charge = 0 
+    if len(parse_metal(formula)) == 2:
+        raise ValueError(f"Bimetals compound electron count is not implementated in the package for now. I'm working on it :(")
+    else:
+        for ligand in ligands:
+            charge += data_ligands[ligand]["charge"]
     return charge
 
-# 
+# Function which calulate the charge of the metal center (MX+ or MX-)
+def metal_charge(formula):
+    charge = complexe_charge(formula) - ligands_charge(formula)
+    return charge
+
+# Fonction which calulate the ox. state of the metal center (dX)
 def oxidation_state(formula):
-    charge = ligands_charge(formula)
-    ox_state = complexe_charge(formula)
-    metals = extract_metal(formula)
-    for metal in metals:
-        ox_state += data_metals[metal]["group"]
-    ox_state += charge
+    metals = parse_metal(formula)
+    ox_state = (data_metals[metals[0]]["group"] - metal_charge(formula))
     return ox_state
 
-#
+# Function which does the electron counting
 def electron_count(formula):
     electrons = oxidation_state(formula)
-    ligands = extract_ligands(formula)
+    ligands = parse_ligands(formula)
     for ligand in ligands:
         electrons += data_ligands[ligand]["denticity"]* 2
     return electrons
 
-#
+# Function which calulate the electroni structure of the metal
 def electronic_structure(formula):
-    metals = extract_metal(formula)
+
+    metals = parse_metal(formula)
     per = 0
     list = []
 
-    for metal in metals:
-        per += data_metals[metal]["period"]
+    # We first deal with the period and which noble gaz is the base of the electronic structure (both metals are the same so their period is also the same)
+    per += data_metals[metals[0]]["period"]
     inert_gas = {4: "Ar", 5: "Kr", 6: "Xe"}
 
-    if ligands_charge(formula) + complexe_charge(formula) < 3:
-        s = 2 - complexe_charge(formula)
+    # Then, we deal with the As^b Cd^e part, also, we seperate if the charge is negative/ between 0-2/ > 2, because it is the s 2 electrons that are first removed
+    if metal_charge(formula) == 0 or metal_charge(formula) == 2:
+        s = 2 - metal_charge(formula)
         d = oxidation_state(formula) - s
-    else:
+    elif metal_charge(formula) >= 3 or metal_charge(formula) == 1: # Because the only electron in the s orbital fall into the d orbital, because lower in energy
         s = 0
-        d = oxidation_state(formula) - 2
+        d = oxidation_state(formula)
+    else:
+        s = 2 
+        d = oxidation_state(formula) - 2 
 
     list.extend([inert_gas.get(per), per, s, d])
     return list
 
-
-def analyse_complexe(formula):
+# Final function which prints all the relevant information about the coordination compound
+def analyze_complexe(formula):
+    # Metal charge part
+    metals = parse_metal(formula)
+    charge = metal_charge(formula) 
+    if charge > 0:
+        print(f"Metal : {metals[0]} {charge}+")
+    elif charge == 0:  
+        print(f"Metal : {metals[0]} {charge}")
+    
+    # Electronic structure part
     list = electronic_structure(formula)
     print(f"Metal electronic structure : [{list[0]}] {list[1]}s{list[2]} {list[1]-1}d{list[3]}")
-    print(f"Electron count : {electron_count(formula)}")
 
+    # Electrons counting part
+    print(f"Electron count : {electron_count(formula)}")

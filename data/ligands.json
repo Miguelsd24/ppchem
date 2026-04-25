@@ -138,6 +138,13 @@
     "donor_atoms": ["P"],
     "charge": 0
     },
+    "PPh3": {
+    "name": "triphenylphosphane",
+    "type": "L",
+    "denticity": 1,
+    "donor_atoms": ["P"],
+    "charge": 0
+    },
     "C10H8N2": {
     "name": "2,2'-pyridine",
     "type": "L",
