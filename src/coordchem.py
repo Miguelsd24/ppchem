@@ -2,37 +2,57 @@ import sys
 import re
 from rdkit import Chem
 import json
+from pathlib import Path
+
+# Loading the data from the metals/ligands.json file
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+with open(BASE_DIR / "data" / "metals.json") as f:
+    data_metals = json.load(f)
+
+with open(BASE_DIR / "data" / "ligands.json") as f:
+    data_ligands = json.load(f)
+
+# The first part of this file focuses on the formula processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...)
+
+# Function which extract a list of the metal/s from a given formula. It also verifies if the metal/s is/are in the json database
+def extract_metal(formula):
+
+    # 1. The metal string is isolated possibly along with the stoechiometric coefficient. Also, we verify that the input str has the appropriate format
+    start = formula.find("[")
+    end = formula.find("(")
+
+    if start == -1 or end == -1:
+        raise ValueError("Wrong input format.")
+
+    clean_formula = formula[start + 1:end]
+    match = re.match(r"^([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) # We use re.match() to find the metal/coefficient pattern
+
+    if clean_formula == "" or match == None:
+        raise ValueError("Wrong input format.")
+
+    # 2. We test if the metal is present in the database and treat the output
+    metal = match.group(1)
+    if metal not in data_metals:
+        raise ValueError(f"Metal {metal} is not in the database.")
+
+    # 3. We test if the coefficient has the appropriate value or format and treat the output
+    num = match.group(2)
+    if num == None:
+        coeff = 1
+    elif int(num) > 2:
+        raise ValueError("Invalid coefficient, the coordination compound has more than two metal centers.")
+    else:
+        coeff = int(num)
+
+    return metal, coeff
 
 
-# Loading the data from the metals.json file.
-with open("data/metals.json", "r") as jsonfile:
-    data_metals = json.load(jsonfile)
-
-# Loading the data from the metals.json file.
-with open("data/ligands.json", "r") as jsonfile:
-    data_ligands = json.load(jsonfile)
-
-# The first part of the .py file focuses on the formula processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...).
-
-# Function which extract a list of the metal/s from a given raw formula. It also verifies if the metal/s is/are in the json database.
-def extract_metals(formula):
-
-    # 1. The metals string is isolated. 
-    clean_formula = formula.replace("[", "").replace("]", "")
-    parenthesis_index = clean_formula.find("(")
-    metals = clean_formula[:parenthesis_index]
-    metals = metals.split(",")
-
-    # 2. For each metal in the list metals, we test if it matches the database.
-    for key in metals:
-        if key not in data_metals:
-            sys.exit(f"Error: Metal {key} not in the database")
-    return metals
-
-# Function which extract a list of the ligand/s from a given raw formula. It also verifies if the ligand/s is/are in the json database.
+# Function which extract a list of the ligand/s from a given raw formula. It also verifies if the ligand/s is/are in the json database
 def extract_ligands(formula):
 
-    # 1. The ligands string is isolated. 
+    # 1. The ligands string is isolated
     clean_formula = formula.replace("[", "").replace("]", "")
     parenthesis_index = clean_formula.find("(")   
     ligands = clean_formula[parenthesis_index:]
@@ -88,7 +108,7 @@ def complexe_charge(formula):
 def extract_elements(formula):
     elements = []
     elements.extend(extract_ligands(formula))
-    elements.extend(extract_metals(formula))
+    elements.extend(extract_metal(formula))
     return elements
 
 # 
@@ -103,7 +123,7 @@ def ligands_charge(formula):
 def oxidation_state(formula):
     charge = ligands_charge(formula)
     ox_state = complexe_charge(formula)
-    metals = extract_metals(formula)
+    metals = extract_metal(formula)
     for metal in metals:
         ox_state += data_metals[metal]["group"]
     ox_state += charge
@@ -119,7 +139,7 @@ def electron_count(formula):
 
 #
 def electronic_structure(formula):
-    metals = extract_metals(formula)
+    metals = extract_metal(formula)
     per = 0
     list = []
 
@@ -140,11 +160,6 @@ def electronic_structure(formula):
 
 def analyse_complexe(formula):
     list = electronic_structure(formula)
-    print(f"Metal oxidation state : {oxidation_state(formula)}")
     print(f"Metal electronic structure : [{list[0]}] {list[1]}s{list[2]} {list[1]-1}d{list[3]}")
     print(f"Electron count : {electron_count(formula)}")
 
-
-
-print(analyse_complexe("[Rh(PR3)3(CO)]+1"))
-print(analyse_complexe("[Fe(CO)5​]"))
