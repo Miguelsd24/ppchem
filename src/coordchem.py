@@ -29,7 +29,7 @@ def extract_metal(formula):
     clean_formula = formula[start + 1:end]
     match = re.match(r"^([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) # We use re.match() to find the metal/coefficient pattern
 
-    if clean_formula == "" or match == None:
+    if match == None:
         raise ValueError("Wrong input format.")
 
     # 2. We test if the metal is present in the database and treat the output
