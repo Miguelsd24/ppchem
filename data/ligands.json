@@ -206,6 +206,15 @@
     "donor_atoms": ["N"],
     "charge": -2
     },
+    "CH3": {
+    "name": "methyl",
+    "SMILES": "[CH3]",
+    "type": "X",
+    "denticity": 1,
+    "donor_atoms": ["C"],
+    "charge": -1,
+    "abbr": "Me"
+    },
     "C2H8N2": {
     "name": "ethylenediamine",
     "SMILES": "[NCCN]",
@@ -268,5 +277,14 @@
     "donor_atoms": ["O"],
     "charge": -1,
     "abbr": "acac"
+    },
+    "C5H5": {
+    "name": "cyclopentadienyl",
+    "SMILES": "c1[cH-]ccc1",
+    "type": "X",
+    "denticity": 3,
+    "charge": -1,
+    "abbr": "Cp"
     }
+
 }

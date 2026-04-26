@@ -13,7 +13,8 @@ CoordChemPy is a Python package designed to assist inorganic chemists and chemis
 Some approximations and assumptions in order to yield a fully fonctional chemistry package :
 - The ligand database is not exhaustive
 - Only classical trasition metals were considered. Lanthanides, actinides and heavy synthetic metals (Rf -> Cn) were excluded
-- Coordination complexes with two or more different metals center are not incorporated
+- Coordination complexes with more than two metal centers are not incorporated
+- Heterobinuclear complexes are not incorporated and homobinuclear complexes must be symmetric with respect to the two metals
 
 ## Installation
 
