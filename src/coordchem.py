@@ -3,7 +3,7 @@ import re
 import json
 from pathlib import Path
 
-# Allows only one error line when running into an error in the jupyter notebook
+# Allows to display only one line when running into an error in the jupyter notebook
 def hide_traceback(exc_tuple=None, filename=None, tb_offset=None, exception_only=False, running_compiled_code=False):
     etype, value, tb = sys.exc_info()
     return print(f"{value}")
@@ -24,7 +24,6 @@ with open(BASE_DIR / "data" / "ligands.json") as f:
 # Function which extract the metal and its stoechiometric coefficient from a given formula. It also verifies if the metal is in the json database
 def parse_metal(formula):
 
-
     # 1. The metal string is isolated possibly along with the stoechiometric coefficient. Also, we verify that the input str has the appropriate format
     start = formula.find("[")
     end = formula.find("(")
@@ -36,18 +35,18 @@ def parse_metal(formula):
 
     # 2. We use re.match() to find the metal/coefficient pattern
 
-    match = re.match(r"^([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
+    match = re.match(r"^(?:(b|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula)
 
     if match == None:
         raise ValueError("Error: Wrong input format.")
 
     # 2. We test if the metal is present in the database and treat the output
-    metal = match.group(1)
+    metal = match.group(2)
     if metal not in data_metals:
         raise ValueError(f"Error: Metal {metal} is not in the database.")
 
     # 3. We test if the coefficient has the appropriate value or format and treat the output
-    num = match.group(2)
+    num = match.group(3)
     coeff = test_string_for_int(num)
     if coeff > 2:
         raise ValueError("Error: Invalid coefficient, the coordination compound has more than two metal centers.")
@@ -56,6 +55,19 @@ def parse_metal(formula):
     metals = []
     metals.extend([metal]*coeff)
     return metals
+
+# Function which extracts form the formula if the metals are bonded (single, double ,triple) or not
+def bond_order(formula):
+    start = formula.find("[")
+    end = formula.find("(")
+    clean_formula = formula[start + 1:end]
+    match = re.match(r"^(?:(b|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
+    order_dico = {"b": 1, "d":2, "t":3}
+    order = order_dico.get(match.group(1), 0)
+
+    if len(parse_metal(formula)) == 1 and order != 0:
+        raise ValueError("Error: b,d,t are only to specifiy the bond between two metals center not one")
+    return order
 
 # Function which find ligands by name or abbr in the database
 def find_ligand(ligand_input):
@@ -66,6 +78,9 @@ def find_ligand(ligand_input):
     for ligand_key, properties in data_ligands.items():
         if "abbr" in properties and properties["abbr"] == ligand_input:
             return ligand_key
+    for ligand_key in data_ligands:
+        if "m-" + ligand_key == ligand_input:
+            return "m-" + ligand_key
     return False
 
 # Function which extract a list of the ligand/s from a given raw formula. It also verifies if the ligand/s is/are in the json database
@@ -97,6 +112,14 @@ def parse_ligands(formula):
             result.extend([find_ligand(ligand)] * coeff)
 
     return result
+
+# Function which counts the number of bridging ligands
+def count_bridging_ligands(formula):
+    num = 0
+    for ligand in parse_ligands(formula):
+        if ligand.startswith("m-"):
+            num += 1
+    return num
 
 # Function which transforms a charge string (i.e. "+, -, X+, +X, -X, X-") to a negative or positive int
 def parse_charge(charge):
@@ -169,23 +192,26 @@ def parse_elements(formula):
     elements = []
     elements.extend(parse_ligands(formula))
     elements.extend(parse_metal(formula))
+    # We also verify that there is no bridging ligand if there is only one metal center
+    if len(parse_metal(formula)) == 1 and count_bridging_ligands(formula) > 0:
+        raise ValueError("Error: A mononuclear complex cannot have bridging ligands")
     return elements
 
 # Function which calulate the sum of all ligands' charges
 def ligands_charge(formula):
-    ligands = parse_ligands(formula)  
-    charge = 0 
-    if len(parse_metal(formula)) == 2:
-        raise ValueError(f"Bimetals compound electron count is not implementated in the package for now. I'm working on it :(")
-    else:
-        for ligand in ligands:
-            charge += data_ligands[ligand]["charge"]
+    ligands = parse_ligands(formula)
+    charge = 0
+    for ligand in ligands:
+        if not ligand.startswith("m-"):
+           charge += data_ligands[ligand]["charge"] 
+        else:
+            charge += data_ligands[ligand[2:]]["charge"]
     return charge
 
 # Function which calulate the charge of the metal center (MX+ or MX-)
 def metal_charge(formula):
-    charge = complexe_charge(formula) - ligands_charge(formula)
-    return charge
+    charge = (complexe_charge(formula) - ligands_charge(formula))//len(parse_metal(formula))
+    return charge 
 
 # Fonction which calulate the ox. state of the metal center (dX)
 def oxidation_state(formula):
@@ -195,11 +221,18 @@ def oxidation_state(formula):
 
 # Function which does the electron counting
 def electron_count(formula):
-    electrons = oxidation_state(formula)
+    electrons = oxidation_state(formula)*len(parse_metal(formula))
     ligands = parse_ligands(formula)
+
     for ligand in ligands:
-        electrons += data_ligands[ligand]["denticity"]* 2
-    return electrons
+        if not ligand.startswith("m-"):
+            electrons += data_ligands[ligand]["denticity"]* 2
+        else:
+            electrons += data_ligands[ligand[2:]]["denticity"]* 2
+    if bond_order(formula) > 0:
+        electrons += 2*bond_order(formula)
+
+    return electrons // len(parse_metal(formula))
 
 # Function which calulate the electroni structure of the metal
 def electronic_structure(formula):
