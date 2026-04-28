@@ -61,12 +61,12 @@ def bond_order(formula):
     start = formula.find("[")
     end = formula.find("(")
     clean_formula = formula[start + 1:end]
-    match = re.match(r"^(?:(b|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
-    order_dico = {"b": 1, "d":2, "t":3}
+    match = re.match(r"^(?:(s|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
+    order_dico = {"s": 1, "d":2, "t":3}
     order = order_dico.get(match.group(1), 0)
 
     if len(parse_metal(formula)) == 1 and order != 0:
-        raise ValueError("Error: b,d,t are only to specifiy the bond between two metals center not one")
+        raise ValueError("Error: s,d,t are only to specifiy the bond between two metals center not one")
     return order
 
 # Function which find ligands by name or abbr in the database
@@ -225,10 +225,10 @@ def electron_count(formula):
     ligands = parse_ligands(formula)
 
     for ligand in ligands:
-        if not ligand.startswith("m-"):
-            electrons += data_ligands[ligand]["denticity"]* 2
+        if ligand.startswith("m-"):
+            electrons += data_ligands[ligand[2:]]["bridging_e"]
         else:
-            electrons += data_ligands[ligand[2:]]["denticity"]* 2
+            electrons += data_ligands[ligand]["donor_e"]
     if bond_order(formula) > 0:
         electrons += 2*bond_order(formula)
 
@@ -261,6 +261,7 @@ def electronic_structure(formula):
 
 # Final function which prints all the relevant information about the coordination compound
 def analyze_complexe(formula):
+
     # Metal charge part
     metals = parse_metal(formula)
     charge = metal_charge(formula) 
