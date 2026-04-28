@@ -276,3 +276,27 @@ def analyze_complexe(formula):
 
     # Electrons counting part
     print(f"Electron count : {electron_count(formula)}")
+
+
+def name_or_abbr_ligands(ligand):
+    abbr_ligand = data_ligands.get(ligand["abbr"])
+    if ligand["abbr"] is None:
+        return data_ligands[ligand]["name"]
+    else:
+        return abbr_ligand
+        
+    
+def naming_compound(formula):
+    ligands = parse_ligands(formula)
+    metals = parse_metal(formula)
+    name = ""
+    for ligand in ligands:
+        ligands_name_or_abbr = [name_or_abbr_ligands(ligand) for ligand in ligands]
+        ligands_name_or_abbr.sort(key=str.lower)
+    for n in range(len(ligands_name_or_abbr)):
+        name += ligands_name_or_abbr[n]
+
+
+
+
+    return name
