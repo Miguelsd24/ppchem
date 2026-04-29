@@ -104,19 +104,28 @@ def parse_ligands(formula):
     result = []
     for ligand, n in match:
         if ligand == "":
-            raise ValueError(f"Error: At leat one ligand is missing in the formula")
+            raise ValueError(f"Error: At least one ligand is missing in the formula")
         if find_ligand(ligand) == False:
             raise ValueError(f"Error: Ligand {ligand} not in the database")
         else:
             coeff = test_string_for_int(n)
-            result.extend([find_ligand(ligand)] * coeff)
+            result.extend([find_ligand(ligand)])
 
-    return result
+    return result, coeff 
+    
+# Function which creates a list with all the ligands times their coeficient. This list is useful to use loops in the calculation function like that There is non need to deal with number later.
+def ligands_list(formula):
+    ligands_list = []
+    ligands = parse_ligands(formula)[0]
+	coeff = parse_ligands(formula)[1]
+    for n in len(ligands):
+        ligands_list.append(ligands[n]*coeff[n])        
+    return ligands_list
 
 # Function which counts the number of bridging ligands
 def count_bridging_ligands(formula):
     num = 0
-    for ligand in parse_ligands(formula):
+    for ligand in ligands_list(formula)]:
         if ligand.startswith("m-"):
             num += 1
     return num
@@ -190,7 +199,7 @@ def complexe_charge(formula):
 # Function which put the metal and ligands in a same list with their respective stoechiometric coefficient
 def parse_elements(formula):
     elements = []
-    elements.extend(parse_ligands(formula))
+    elements.extend(ligands_list(formula))
     elements.extend(parse_metal(formula))
     # We also verify that there is no bridging ligand if there is only one metal center
     if len(parse_metal(formula)) == 1 and count_bridging_ligands(formula) > 0:
@@ -199,7 +208,7 @@ def parse_elements(formula):
 
 # Function which calulate the sum of all ligands' charges
 def ligands_charge(formula):
-    ligands = parse_ligands(formula)
+    ligands = ligands_list(formula)
     charge = 0
     for ligand in ligands:
         if not ligand.startswith("m-"):
@@ -222,7 +231,7 @@ def oxidation_state(formula):
 # Function which does the electron counting
 def electron_count(formula):
     electrons = oxidation_state(formula)*len(parse_metal(formula))
-    ligands = parse_ligands(formula)
+    ligands = ligands_list(formula)
 
     for ligand in ligands:
         if ligand.startswith("m-"):
@@ -287,14 +296,15 @@ def name_or_abbr_ligands(ligand):
         
     
 def naming_compound(formula):
-    ligands = parse_ligands(formula)
+    ligands = parse_ligands(formula)[0]
+    ligands_coeff = parse_ligands(formula)[1]
     metals = parse_metal(formula)
     name = ""
     for ligand in ligands:
         ligands_name_or_abbr = [name_or_abbr_ligands(ligand) for ligand in ligands]
         ligands_name_or_abbr.sort(key=str.lower)
-    for n in range(len(ligands_name_or_abbr)):
-        name += ligands_name_or_abbr[n]
+    for n in range(len(ligands)):
+        name += 
 
 
 
