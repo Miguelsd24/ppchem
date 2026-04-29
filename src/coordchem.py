@@ -294,6 +294,32 @@ def name_or_abbr_ligands(ligand):
     else:
         return abbr_ligand
         
+coeff_name1 = {
+2: "di"
+3: "tri"
+4: "tetra"
+5: "penta"
+6: "hexa"
+7: "hepta"
+8: "octa"
+9: "nona"
+10: "deca"
+11: ""
+12: ""
+
+        
+coeff_name2 = {
+2: "bis"
+3: "tris"
+4: "tetrakis"
+5: "pentakis"
+6: "hexakis"
+7: "heptakis"
+8: "octakis"
+9: "
+
+
+    
     
 def naming_compound(formula):
     ligands = parse_ligands(formula)[0]
@@ -303,10 +329,8 @@ def naming_compound(formula):
     for ligand in ligands:
         ligands_name_or_abbr = [name_or_abbr_ligands(ligand) for ligand in ligands]
         ligands_name_or_abbr.sort(key=str.lower)
-    for n in range(len(ligands)):
+    for n in range(len(ligands_name_or_abbr)):
         name += 
-
-
 
 
     return name
