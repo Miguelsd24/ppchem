@@ -27,31 +27,27 @@ def parse_metal(formula):
     # 1. The metal string is isolated possibly along with the stoechiometric coefficient. Also, we verify that the input str has the appropriate format
     start = formula.find("[")
     end = formula.find("(")
-
     if start == -1 or end == -1  or start >= end:
         raise ValueError("Error: Wrong input format.")
-
     clean_formula = formula[start + 1:end]
 
     # 2. We use re.match() to find the metal/coefficient pattern
-
-    match = re.match(r"^(?:(b|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula)
-
+    match = re.match(r"^(?:(s|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula)
     if match == None:
         raise ValueError("Error: Wrong input format.")
 
-    # 2. We test if the metal is present in the database and treat the output
+    # 3. We test if the metal is present in the database and treat the output
     metal = match.group(2)
     if metal not in data_metals:
         raise ValueError(f"Error: Metal {metal} is not in the database.")
 
-    # 3. We test if the coefficient has the appropriate value or format and treat the output
+    # 4. We test if the coefficient has the appropriate value or format and treat the output
     num = match.group(3)
     coeff = test_string_for_int(num)
     if coeff > 2:
         raise ValueError("Error: Invalid coefficient, the coordination compound has more than two metal centers.")
     
-    # 4. We put the metal and its coefficient in a list and return it
+    # 5. We put the metal and its coefficient in a list and return it
     metals = []
     metals.extend([metal]*coeff)
     return metals
@@ -64,7 +60,6 @@ def bond_order(formula):
     match = re.match(r"^(?:(s|d|t))?([A-Z][A-Za-z]*)([1-9]\d*)?$", clean_formula) 
     order_dico = {"s": 1, "d":2, "t":3}
     order = order_dico.get(match.group(1), 0)
-
     if len(parse_metal(formula)) == 1 and order != 0:
         raise ValueError("Error: s,d,t are only to specifiy the bond between two metals center not one")
     return order
@@ -102,13 +97,14 @@ def parse_ligands(formula):
 
     # 3. For each ligand in the ligands list, we isolate the stoechiometric coefficient and test if the ligands are in the database
     result = []
+    coeff = []
     for ligand, n in match:
         if ligand == "":
             raise ValueError(f"Error: At least one ligand is missing in the formula")
         if find_ligand(ligand) == False:
             raise ValueError(f"Error: Ligand {ligand} not in the database")
         else:
-            coeff = test_string_for_int(n)
+            coeff.append(test_string_for_int(n))
             result.extend([find_ligand(ligand)])
 
     return result, coeff 
@@ -117,15 +113,15 @@ def parse_ligands(formula):
 def ligands_list(formula):
     ligands_list = []
     ligands = parse_ligands(formula)[0]
-	coeff = parse_ligands(formula)[1]
-    for n in len(ligands):
-        ligands_list.append(ligands[n]*coeff[n])        
+    coeff = parse_ligands(formula)[1]
+    for n in range(len(ligands)):
+        ligands_list.extend([ligands[n]]*coeff[n])     
     return ligands_list
 
 # Function which counts the number of bridging ligands
 def count_bridging_ligands(formula):
     num = 0
-    for ligand in ligands_list(formula)]:
+    for ligand in ligands_list(formula):
         if ligand.startswith("m-"):
             num += 1
     return num
@@ -225,6 +221,7 @@ def metal_charge(formula):
 # Fonction which calulate the ox. state of the metal center (dX)
 def oxidation_state(formula):
     metals = parse_metal(formula)
+    print
     ox_state = (data_metals[metals[0]]["group"] - metal_charge(formula))
     return ox_state
 
@@ -268,8 +265,99 @@ def electronic_structure(formula):
     list.extend([inert_gas.get(per), per, s, d])
     return list
 
+
+# =============================================================================================================================================================== #
+        
+coeff_name1 = {
+    1: "",
+    2: "di",
+    3: "tri",
+    4: "tetra",
+    5: "penta",
+    6: "hexa",
+    7: "hepta",
+    8: "octa",
+    9: "nona",
+    10: "deca"
+}
+        
+coeff_name2 = {
+    1: "",
+    2: "bis",
+    3: "tris",
+    4: "tetrakis",
+    5: "pentakis",
+    6: "hexakis",
+    7: "heptakis",
+    8: "octakis",
+    9: "nonakis",
+    10: "decakis",
+}
+
+
+def name_or_abbr_ligands(ligand):
+    #if data_ligands[ligand].get("nomenclature") is not None: # Generally the abbr is used in the nomenclature but no always. This deals with the exception like Me = methyl
+        #return data_ligands[ligand]["nomenclature"] 
+    #if data_ligands[ligand].get("abbr") is None:
+        return data_ligands[ligand]["name"]
+    #else:
+        #return data_ligands[ligand]["abbr"]
+    
+
+def is_an_abbr(ligand_name):
+    for ligand in data_ligands.values():
+        abbr = ligand.get("abbr")
+        if abbr is not None and ligand_name == abbr:
+            return True
+    return False
+
+
+def naming_compound(formula):
+    # 1. We set the data nedded
+    parsed_data = parse_ligands(formula)
+    ligands = parsed_data[0]
+    coeffs = parsed_data[1]
+    metals = parse_metal(formula)[0]
+    ligands_with_coeffs = []
+    name = ""
+
+    # 2. Ligands as name ou abbr and are sortes by alphabetic order
+    for n in range(len(ligands)):
+        ligand_name = name_or_abbr_ligands(ligands[n])
+        ligands_with_coeffs.append((ligand_name,coeffs[n]))
+    ligands_with_coeffs.sort(key=lambda x: x[0].lower())
+
+    # 2. Metal as name (primary or secondary)
+    if complexe_charge(formula) < 0:
+        metal_name = data_metals[metals]["secondary_name"]
+    else:
+        metal_name = data_metals[metals]["name"]
+
+    # 3. We construct the name of the compound
+    for ligand_name, coeff in ligands_with_coeffs:
+        prefixe = coeff_name1[coeff]
+        if is_an_abbr(ligand_name) is False:
+            name += prefixe + ligand_name
+        else:
+            name += (f"({prefixe + ligand_name})")
+
+    # 4. We add the metal name and the charge
+    name += metal_name
+    name += (f"({complexe_charge(formula)})")
+    return name
+
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------------------------#
+
 # Final function which prints all the relevant information about the coordination compound
 def analyze_complexe(formula):
+
+    # Nomenclature
+    print(f"Name : {naming_compound(formula)} ")
 
     # Metal charge part
     metals = parse_metal(formula)
@@ -285,52 +373,3 @@ def analyze_complexe(formula):
 
     # Electrons counting part
     print(f"Electron count : {electron_count(formula)}")
-
-
-def name_or_abbr_ligands(ligand):
-    abbr_ligand = data_ligands.get(ligand["abbr"])
-    if ligand["abbr"] is None:
-        return data_ligands[ligand]["name"]
-    else:
-        return abbr_ligand
-        
-coeff_name1 = {
-2: "di"
-3: "tri"
-4: "tetra"
-5: "penta"
-6: "hexa"
-7: "hepta"
-8: "octa"
-9: "nona"
-10: "deca"
-11: ""
-12: ""
-
-        
-coeff_name2 = {
-2: "bis"
-3: "tris"
-4: "tetrakis"
-5: "pentakis"
-6: "hexakis"
-7: "heptakis"
-8: "octakis"
-9: "
-
-
-    
-    
-def naming_compound(formula):
-    ligands = parse_ligands(formula)[0]
-    ligands_coeff = parse_ligands(formula)[1]
-    metals = parse_metal(formula)
-    name = ""
-    for ligand in ligands:
-        ligands_name_or_abbr = [name_or_abbr_ligands(ligand) for ligand in ligands]
-        ligands_name_or_abbr.sort(key=str.lower)
-    for n in range(len(ligands_name_or_abbr)):
-        name += 
-
-
-    return name
