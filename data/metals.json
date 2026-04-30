@@ -1,147 +1,31 @@
 {
-  "Sc": { 
-    "symbol": "Sc", 
-    "name": "Scandium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Ti": { 
-    "symbol": "Ti", 
-    "name": "Titanium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "V": {  
-    "symbol": "V", 
-    "name": "Vanadium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Cr": { 
-    "symbol": "Cr", 
-    "name": "Chromium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Mn": { 
-    "symbol": "Mn", 
-    "name": "Manganese", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Fe": { 
-    "symbol": "Fe", 
-    "name": "Iron", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Co": { 
-    "symbol": "Co", 
-    "name": "Cobalt", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Ni": { 
-    "symbol": "Ni", 
-    "name": "Nickel", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Cu": { 
-    "symbol": "Cu", 
-    "name": "Copper", 
-    "preferred_geometry": "square_planar" 
-  },
-  "Zn": { 
-    "symbol": "Zn", 
-    "name": "Zinc", 
-    "preferred_geometry": "tetrahedral" 
-  },
-  "Y": {  
-    "symbol": "Y", 
-    "name": "Yttrium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Zr": { 
-    "symbol": "Zr", 
-    "name": "Zirconium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Nb": { 
-    "symbol": "Nb", 
-    "name": "Niobium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Mo": { 
-    "symbol": "Mo", 
-    "name": "Molybdenum", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Tc": { 
-    "symbol": "Tc", 
-    "name": "Technetium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Ru": { 
-    "symbol": "Ru", 
-    "name": "Ruthenium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Rh": { 
-    "symbol": "Rh", 
-    "name": "Rhodium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Pd": { 
-    "symbol": "Pd", 
-    "name": "Palladium", 
-    "preferred_geometry": "square_planar" 
-  },
-  "Ag": { 
-    "symbol": "Ag", 
-    "name": "Silver", 
-    "preferred_geometry": "linear" 
-  },
-  "Cd": { 
-    "symbol": "Cd", 
-    "name": "Cadmium", 
-    "preferred_geometry": "tetrahedral" 
-  },
-  "Hf": { 
-    "symbol": "Hf", 
-    "name": "Hafnium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Ta": { 
-    "symbol": "Ta", 
-    "name": "Tantalum", 
-    "preferred_geometry": "octahedral" 
-  },
-  "W": {  
-    "symbol": "W", 
-    "name": "Tungsten", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Re": { 
-    "symbol": "Re", 
-    "name": "Rhenium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Os": { 
-    "symbol": "Os", 
-    "name": "Osmium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Ir": { 
-    "symbol": "Ir", 
-    "name": "Iridium", 
-    "preferred_geometry": "octahedral" 
-  },
-  "Pt": { 
-    "symbol": "Pt", 
-    "name": "Platinum", 
-    "preferred_geometry": "square_planar" 
-  },
-  "Au": { 
-    "symbol": "Au", 
-    "name": "Gold", 
-    "preferred_geometry": "linear" 
-  },
-  "Hg": { 
-    "symbol": "Hg", 
-    "name": "Mercury", 
-    "preferred_geometry": "linear" 
-  }
+  "Sc": { "symbol": "sc", "name": "scandium", "secondary_name": "scandiumate", "preferred_geometry": "octahedral", "group": 3, "period": 4 },
+  "Ti": { "symbol": "ti", "name": "titanium", "secondary_name": "titanate", "preferred_geometry": "octahedral", "group": 4, "period": 4 },
+  "V": { "symbol": "v", "name": "vanadium", "secondary_name": "vanadate", "preferred_geometry": "octahedral", "group": 5, "period": 4 },
+  "Cr": { "symbol": "cr", "name": "chromium", "secondary_name": "chromate", "preferred_geometry": "octahedral", "group": 6, "period": 4 },
+  "Mn": { "symbol": "mn", "name": "manganese", "secondary_name": "manganate", "preferred_geometry": "octahedral", "group": 7, "period": 4 },
+  "Fe": { "symbol": "fe", "name": "iron", "secondary_name": "ferrate", "preferred_geometry": "octahedral", "group": 8, "period": 4 },
+  "Co": { "symbol": "co", "name": "cobalt", "secondary_name": "cobaltate", "preferred_geometry": "octahedral", "group": 9, "period": 4 },
+  "Ni": { "symbol": "ni", "name": "nickel", "secondary_name": "nickelate", "preferred_geometry": "octahedral", "group": 10, "period": 4 },
+  "Cu": { "symbol": "cu", "name": "copper", "secondary_name": "cuprate", "preferred_geometry": "square_planar", "group": 11, "period": 4 },
+  "Zn": { "symbol": "zn", "name": "zinc", "secondary_name": "zincate", "preferred_geometry": "tetrahedral", "group": 12, "period": 4 },
+  "Y": { "symbol": "y", "name": "yttrium", "secondary_name": "yttriate", "preferred_geometry": "octahedral", "group": 3, "period": 5 },
+  "Zr": { "symbol": "zr", "name": "zirconium", "secondary_name": "zirconate", "preferred_geometry": "octahedral", "group": 4, "period": 5 },
+  "Nb": { "symbol": "nb", "name": "niobium", "secondary_name": "niobate", "preferred_geometry": "octahedral", "group": 5, "period": 5 },
+  "Mo": { "symbol": "mo", "name": "molybdenum", "secondary_name": "molybdate", "preferred_geometry": "octahedral", "group": 6, "period": 5 },
+  "Tc": { "symbol": "tc", "name": "technetium", "secondary_name": "technetate", "preferred_geometry": "octahedral", "group": 7, "period": 5 },
+  "Ru": { "symbol": "ru", "name": "ruthenium", "secondary_name": "ruthenate", "preferred_geometry": "octahedral", "group": 8, "period": 5 },
+  "Rh": { "symbol": "rh", "name": "rhodium", "secondary_name": "rhodate", "preferred_geometry": "octahedral", "group": 9, "period": 5 },
+  "Pd": { "symbol": "pd", "name": "palladium", "secondary_name": "palladate", "preferred_geometry": "square_planar", "group": 10, "period": 5 },
+  "Ag": { "symbol": "ag", "name": "silver", "secondary_name": "argentate", "preferred_geometry": "linear", "group": 11, "period": 5 },
+  "Cd": { "symbol": "cd", "name": "cadmium", "secondary_name": "cadmiate", "preferred_geometry": "tetrahedral", "group": 12, "period": 5 },
+  "Hf": { "symbol": "hf", "name": "hafnium", "secondary_name": "hafnate", "preferred_geometry": "octahedral", "group": 4, "period": 6 },
+  "Ta": { "symbol": "ta", "name": "tantalum", "secondary_name": "tantalate", "preferred_geometry": "octahedral", "group": 5, "period": 6 },
+  "W": { "symbol": "w", "name": "tungsten", "secondary_name": "tungstate", "preferred_geometry": "octahedral", "group": 6, "period": 6 },
+  "Re": { "symbol": "re", "name": "rhenium", "secondary_name": "rhenate", "preferred_geometry": "octahedral", "group": 7, "period": 6 },
+  "Os": { "symbol": "os", "name": "osmium", "secondary_name": "osmate", "preferred_geometry": "octahedral", "group": 8, "period": 6 },
+  "Ir": { "symbol": "ir", "name": "iridium", "secondary_name": "iridate", "preferred_geometry": "octahedral", "group": 9, "period": 6 },
+  "Pt": { "symbol": "pt", "name": "platinum", "secondary_name": "platinate", "preferred_geometry": "square_planar", "group": 10, "period": 6 },
+  "Au": { "symbol": "au", "name": "gold", "secondary_name": "aurate", "preferred_geometry": "linear", "group": 11, "period": 6 },
+  "Hg": { "symbol": "hg", "name": "mercury", "secondary_name": "mercurate", "preferred_geometry": "linear", "group": 12, "period": 6 }
 }
