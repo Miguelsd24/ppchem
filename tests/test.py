@@ -21,3 +21,8 @@ def test_string_for_int(num):
 n=2
 m=float(n)
 print(m.is_integer())
+
+
+
+ligand = "m-ligand"
+print(ligand[0:])

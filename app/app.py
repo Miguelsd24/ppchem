@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import os
+import time
 
 # 1. Trouve le dossier où se trouve app.py
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -12,24 +13,26 @@ src_path = os.path.join(current_dir, "..", "src")
 if src_path not in sys.path:
     sys.path.append(src_path)
 
-# 4. Maintenant, l'import fonctionnera !
 import coordchem as cc
 
 
-
 # Title of the app
-st.title("CoordChemPy")
-st.markdown("The best python based tool for coordination chemist!")
+st.title("CoordChemPy", text_alignment="left")
+st.subheader("The best python based tool for coordination chemist!", divider="gray",  text_alignment="left")
 # 
-st.subheader("Coordination compound Information finder")
-st.text("...")
+st.subheader("Coordination compound information finder")
 
-coord_compound  = st.text_input("Enter the coordination compound formula following the correct format", "Type here...")
+coord_compound  = st.text_input("_Enter the coordination compound formula following the correct format_", placeholder="Type here ...", help="Input format rules are explained in the README.md file")
 
-#
-if st.button("Submit"):
-    result = cc.analyse_complexe(coord_compound)
-    st.success(result)
+if st.button("Analysis"):
+    if coord_compound:
+        try:
+            result = cc.show_analysis(coord_compound)
+            st.success("Successful analysis")
+            st.text(result)
+        except ValueError as e:
+            st.error(str(e))
+    else:
+        st.warning("Please enter a formula.")
 
-
-
+st.divider()
