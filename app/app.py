@@ -1,7 +1,6 @@
 import streamlit as st
 import sys
 import os
-import time
 
 # 1. Trouve le dossier où se trouve app.py
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +17,7 @@ import coordchem as cc
 
 # Title of the app
 st.title("CoordChemPy", text_alignment="left")
-st.subheader("The best python based tool for coordination chemist!", divider="gray",  text_alignment="left")
+st.subheader("The best python based tool for coordination chemist! :atom_symbol:", divider="gray",  text_alignment="left")
 # 
 st.subheader("Coordination compound information finder")
 
@@ -27,9 +26,10 @@ coord_compound  = st.text_input("_Enter the coordination compound formula follow
 if st.button("Analysis"):
     if coord_compound:
         try:
-            result = cc.show_analysis(coord_compound)
+            result = cc.analyze_complexe(coord_compound)[0]
             st.success("Successful analysis")
-            st.text(result)
+            for line in result:
+                st.write(line)
         except ValueError as e:
             st.error(str(e))
     else:

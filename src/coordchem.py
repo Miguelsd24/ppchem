@@ -3,6 +3,8 @@ import re
 import json
 from pathlib import Path
 import roman
+import string
+from IPython.display import display, Markdown
 
 # Allows to display only one line when running into an error in the jupyter notebook
 def hide_traceback(exc_tuple=None, filename=None, tb_offset=None, exception_only=False, running_compiled_code=False):
@@ -25,6 +27,20 @@ with open(BASE_DIR / "data" / "ligands.json") as f:
     data_ligands = json.load(f)
 
 # The first part of this file focuses on the formula format processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...)
+
+# Function which process the formula to have a better looking LaTeX formula
+def clean_formula(formula):
+    clean_formula = re.sub(r"m-", r"μ-", formula)
+    start = clean_formula.find("[")
+    end = clean_formula.find("]")
+    clean_formula_1 = (clean_formula[:start] + re.sub(r"(\d+)", r"_{\1}", clean_formula[start:end + 1]))
+    signe = ""
+    if complexe_charge(formula) > 0 :
+        signe = "+"
+    if complexe_charge(formula) == 0 :
+        return "$" + clean_formula_1 + "$"
+    clean_formula_2 = "^{" +  signe + str(complexe_charge(formula)) + "}"
+    return "$" + clean_formula_1 + clean_formula_2 + "$"
 
 # Function which extract the metal and its stoechiometric coefficient from a given formula. It also verifies if the metal is in the json database
 def parse_metal(formula):
@@ -72,15 +88,17 @@ def bond_order(formula):
 # Function which find ligands by name or abbr in the database
 def find_ligand(ligand_input):
     # 1. Direct verification
-    if ligand_input in data_ligands: 
+    if ligand_input in data_ligands:
         return ligand_input
     # 2. Verification by abbreviation
     for ligand_key, properties in data_ligands.items():
         if "abbr" in properties and properties["abbr"] == ligand_input:
             return ligand_key
-    for ligand_key in data_ligands:
-        if "m-" + ligand_key == ligand_input:
-            return "m-" + ligand_key
+    # 3. Verification for a bridging ligand
+    if ligand_input.startswith("m-"):
+        for ligand_key in data_ligands:
+            if ligand_key == ligand_input[2:]:
+                return ligand_input
     return False
 
 # Function which extract a list of the ligand/s from a given raw formula. It also verifies if the ligand/s is/are in the json database
@@ -104,9 +122,11 @@ def parse_ligands(formula):
     result = []
     coeff = []
     for ligand, n in match:
-        if ligand == "":
+        if test_string_for_int(n) > 10:
+            raise ValueError(f"Error: No ligand can have a coefficient superior to 10")
+        elif ligand == "":
             raise ValueError(f"Error: At least one ligand is missing in the formula")
-        if find_ligand(ligand) == False:
+        elif find_ligand(ligand) == False:
             raise ValueError(f"Error: Ligand {ligand} not in the database")
         else:
             coeff.append(test_string_for_int(n))
@@ -226,8 +246,10 @@ def metal_charge(formula):
 # Fonction which calulate the ox. state of the metal center (dX)
 def oxidation_state(formula):
     metals = parse_metal(formula)
-    print
+
     ox_state = (data_metals[metals[0]]["group"] - metal_charge(formula))
+    if ox_state < 0 or ox_state > 10:
+        raise ValueError(f"Error: There is too extreme charge")
     return ox_state
 
 # Function which does the electron counting
@@ -286,7 +308,6 @@ coeff_name1 = {
     10: "deca"
 }
         
-
 coeff_name2 = {
     1: "",
     2: "bis",
@@ -327,6 +348,8 @@ def naming_compound(formula):
     ligands_with_coeffs = []
     name = ""
     mu = "-" + "\u03bc" + "-"
+    n = 1
+    last_parenthesis =  False
 
     # 2. We indentify the the bridging ligands by transforming their coefficient to a negative value (no chimical sense just easier to inditify later)
     for n in range(len(ligands)):
@@ -337,47 +360,113 @@ def naming_compound(formula):
         ligands_with_coeffs.append((ligand_name,coeffs[n]))
     ligands_with_coeffs.sort(key=lambda x: x[0].lower())
 
+
     # 4. Metal as name (primary or secondary)
     if complexe_charge(formula) < 0:
         metal_name = data_metals[metals[0]]["secondary_name"]
     else:
         metal_name = data_metals[metals[0]]["name"]
 
-    # 5. We construct the name of the compound beginining with the ligands taking into account the bridging and if there is two metals
-    x = 1
-    if len(metals) == 2:
-        x = 2
-        name += coeff_name2[2] + "("
+    # 5. We seperate the cases
+
+    #-------------BRIDGING LIGANDS---------------#
     for i, (ligand_name, coeff) in enumerate(ligands_with_coeffs):
-        n = 1
-        bridging = ""
         if coeff < 0:
-            n = -1
-            if i == 0:
-                bridging = mu[1:]
-            else: 
-                bridging = mu
-        # We seperate the case where we have to use the second type of prefixes according to the ligand (IUPAC rules)
-        if should_use_the_coeff_name2(ligand_name) == True:
-            prefixe_ligand = coeff_name2[coeff*n/x] 
-            name += (f"{bridging}{prefixe_ligand}({ligand_name})")
-        else:
-            prefixe_ligand = coeff_name1[coeff*n/x] 
-            name += bridging + prefixe_ligand + ligand_name
+            bridging = mu
+            if should_use_the_coeff_name2(ligand_name) == True:     # We seperate the case where we have to use the second type of prefixes according to the ligand (IUPAC rules)
+                prefixe_ligand = coeff_name2[coeff*-1]
+                name += (f"{bridging}{prefixe_ligand}({ligand_name})")
+            else:
+                prefixe_ligand = coeff_name1[coeff*-1]
+                name += bridging + prefixe_ligand + ligand_name
+
+    #------------- 2 METALS ---------------#
+    if len(metals) == 2 and len(ligands)-count_bridging_ligands(formula) > 0:
+        name += coeff_name2[2] + "("
+        n = 2
+        last_parenthesis =  True
+    else:
+        name += coeff_name1[2]
+
+    #----------- TERMINAL LIGANDS---------------#
+    for i, (ligand_name, coeff) in enumerate(ligands_with_coeffs):
+        if coeff > 0:
+            if should_use_the_coeff_name2(ligand_name) == True:
+                prefixe_ligand = coeff_name2[coeff/n] 
+                name += (f"{prefixe_ligand}({ligand_name})")
+            else:
+                prefixe_ligand = coeff_name1[coeff/n] 
+                name += prefixe_ligand + ligand_name
 
     # 6. We add the metal name and already put the capital at the begining (avoid interaction between .capitalize and roman numbers)
     name += metal_name
     name = name.capitalize()
 
     # 7. We add the charge according to preference selected in the site (roman/int)
-    charge_int = complexe_charge(formula)
-    charge_roman = roman.toRoman(metal_charge(formula))
-    name += (f"({charge_int})")
-    #name += (f"({charge_roman})")
-    if len(metals) == 2:
+
+    #charge_int = complexe_charge(formula)
+    #name += (f"({charge_int})")
+
+    charge = metal_charge(formula)
+    charge_roman = roman.toRoman(abs(charge))
+    if charge == 0:
+        charge_roman = 0
+    elif charge < 0:
+        charge_roman = "-" + roman.toRoman(abs(charge))
+    name += (f"({charge_roman})")
+
+    # 8. Last modifs of the name 
+    if last_parenthesis == True:
         name += ")"
-        
+    if name.startswith("-"):
+        name = name[1:]
+
     return name
+
+
+# =============================================================================================================================================================== #
+
+stereoisomers_dico = {
+    "Ma6": 1,
+    "Ma5b": 1,
+    "Ma4b2": 2,
+    "Ma3b3": 2,
+    "Ma4bc": 2,
+    "Ma3bcd": 5,
+    "Ma2bcde": 15,
+    "Mabcdef": 30,
+    "Ma2b2c2": 6,
+    "Ma2b2cd": 8
+}
+
+enantiomers_dico = {
+    "Ma6": 0,
+    "Ma5b": 0,
+    "Ma4b2": 0,
+    "Ma3b3": 0,
+    "Ma4bc": 0,
+    "Ma3bcd": 1,
+    "Ma2bcde": 6,
+    "Mabcdef": 15,
+    "Ma2b2c2": 1,
+    "Ma2b2cd": 2
+}
+
+
+def isomers(formula):
+    key = ""
+    alphabet = string.ascii_lowercase
+    data = (parse_ligands(formula))
+    if len(parse_metal(formula)) == 1:
+        key += "M"
+    else:
+        key += "M2"
+    for n in range(len(data[0])):
+        letter = alphabet[n]
+        key += letter + str(data[1][n])
+    stereo = stereoisomers_dico.get(key)
+    enantio = enantiomers_dico.get(key)
+    return stereo, enantio
 
 
 # =============================================================================================================================================================== #
@@ -387,31 +476,44 @@ def analyze_complexe(formula):
     parse_elements(formula)
     lines = []
 
-    #Formule
-    lines.append(f"Formula : {formula}")
+    #Formula
+    lines.append(f"* **Formula** : {clean_formula(formula)}")
 
     # Nomenclature
     name = naming_compound(formula)
-    lines.append(f"IUPAC Name : {name}")
+    lines.append(f"* **IUPAC Name** : {name}")
 
-    # Metal charge part
+    # Metal charge
     metals = parse_metal(formula)
     charge = metal_charge(formula) 
     charge_str = f"{charge}+" if charge > 0 else f"{charge}"
-    lines.append(f"Metal : {metals[0]} ({charge_str})")
+    lines.append(f"* **Metal** : {metals[0]} ({charge_str})")
     
-    # Electronic structure part
+    # Electronic structure
     e_list = electronic_structure(formula)
-    lines.append(f"Electronic structure : [{e_list[0]}] {e_list[1]}s{e_list[2]} {e_list[1]-1}d{e_list[3]}")
+    lines.append(f"* **Electronic structure** : [{e_list[0]}] {e_list[1]}s{e_list[2]} {e_list[1]-1}d{e_list[3]}")
 
-    # Electrons counting part
+    # Electrons counting
     count = electron_count(formula)
-    lines.append(f"Electron count : {count}")
+    lines.append(f"* **Electron count** : {count}")
 
-    return "\n".join(lines)
+    # Isomers
 
-formula = "[Co(CO)6]"
+    if isomers(formula)[0] == None or isomers(formula)[1] == None:
+        lines.append("* **Isomers:** The number of isomers of this compound is not specified")
+    else:
+        lines.append(f"* **Isomers:** This compound has {isomers(formula)[0]} stereoisomers and {isomers(formula)[1]} enantiomeres pairs")
 
+    return lines, "\n".join(lines)
+
+
+def show_analysis(formula):
+    return display(Markdown(analyze_complexe(formula)[1]))
+
+
+#formula = "[Co2(m-OH)(m-NH2)(NH3)8]4+"
+
+#print(clean_formula(formula))
 #print(parse_metal(formula))
 #print(parse_ligands(formula))
 #print(ligands_list(formula))
@@ -424,4 +526,4 @@ formula = "[Co(CO)6]"
 #print(bond_order(formula))
 #print(naming_compound(formula))
 
-print(analyze_complexe(formula))
+#print(analyze_complexe(formula))
