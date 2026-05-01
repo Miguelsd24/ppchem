@@ -2,12 +2,17 @@ import sys
 import re
 import json
 from pathlib import Path
+import roman
 
 # Allows to display only one line when running into an error in the jupyter notebook
 def hide_traceback(exc_tuple=None, filename=None, tb_offset=None, exception_only=False, running_compiled_code=False):
     etype, value, tb = sys.exc_info()
     return print(f"{value}")
-get_ipython().showtraceback = hide_traceback # This replaces the default Jupyter error handler with our clean one-liner
+
+try:
+    ipython = get_ipython()
+except NameError:
+    pass # This replaces the default Jupyter error handler with our clean one-liner
 
 # Loading the data from the metals/ligands.json file
 
@@ -281,6 +286,7 @@ coeff_name1 = {
     10: "deca"
 }
         
+
 coeff_name2 = {
     1: "",
     2: "bis",
@@ -295,19 +301,19 @@ coeff_name2 = {
 }
 
 
-def name_or_abbr_ligands(ligand):
-    #if data_ligands[ligand].get("nomenclature") is not None: # Generally the abbr is used in the nomenclature but no always. This deals with the exception like Me = methyl
-        #return data_ligands[ligand]["nomenclature"] 
-    #if data_ligands[ligand].get("abbr") is None:
-        return data_ligands[ligand]["name"]
-    #else:
-        #return data_ligands[ligand]["abbr"]
+def name_ligand(ligand):
+    n = 0
+    if ligand.startswith("m-"):
+        n = 2
+    if data_ligands[ligand[n:]].get("nomenclature") is not None: # Generally the name is used in the nomenclature but no always.
+        return data_ligands[ligand[n:]]["nomenclature"] 
+    else:
+        return data_ligands[ligand[n:]]["name"]
     
 
-def is_an_abbr(ligand_name):
+def should_use_the_coeff_name2(ligand_name):
     for ligand in data_ligands.values():
-        abbr = ligand.get("abbr")
-        if abbr is not None and ligand_name == abbr:
+        if ligand["name"] == ligand_name and ligand.get("coeff") == "yes":
             return True
     return False
 
@@ -317,59 +323,105 @@ def naming_compound(formula):
     parsed_data = parse_ligands(formula)
     ligands = parsed_data[0]
     coeffs = parsed_data[1]
-    metals = parse_metal(formula)[0]
+    metals = parse_metal(formula)
     ligands_with_coeffs = []
     name = ""
+    mu = "-" + "\u03bc" + "-"
 
-    # 2. Ligands as name ou abbr and are sortes by alphabetic order
+    # 2. We indentify the the bridging ligands by transforming their coefficient to a negative value (no chimical sense just easier to inditify later)
     for n in range(len(ligands)):
-        ligand_name = name_or_abbr_ligands(ligands[n])
+        if ligands[n].startswith("m-"):
+            coeffs[n] *= -1
+    # 3. Ligands as name ou abbr and are sortes by alphabetic order
+        ligand_name = name_ligand(ligands[n])
         ligands_with_coeffs.append((ligand_name,coeffs[n]))
     ligands_with_coeffs.sort(key=lambda x: x[0].lower())
 
-    # 2. Metal as name (primary or secondary)
+    # 4. Metal as name (primary or secondary)
     if complexe_charge(formula) < 0:
-        metal_name = data_metals[metals]["secondary_name"]
+        metal_name = data_metals[metals[0]]["secondary_name"]
     else:
-        metal_name = data_metals[metals]["name"]
+        metal_name = data_metals[metals[0]]["name"]
 
-    # 3. We construct the name of the compound
-    for ligand_name, coeff in ligands_with_coeffs:
-        prefixe = coeff_name1[coeff]
-        if is_an_abbr(ligand_name) is False:
-            name += prefixe + ligand_name
+    # 5. We construct the name of the compound beginining with the ligands taking into account the bridging and if there is two metals
+    x = 1
+    if len(metals) == 2:
+        x = 2
+        name += coeff_name2[2] + "("
+    for i, (ligand_name, coeff) in enumerate(ligands_with_coeffs):
+        n = 1
+        bridging = ""
+        if coeff < 0:
+            n = -1
+            if i == 0:
+                bridging = mu[1:]
+            else: 
+                bridging = mu
+        # We seperate the case where we have to use the second type of prefixes according to the ligand (IUPAC rules)
+        if should_use_the_coeff_name2(ligand_name) == True:
+            prefixe_ligand = coeff_name2[coeff*n/x] 
+            name += (f"{bridging}{prefixe_ligand}({ligand_name})")
         else:
-            name += (f"({prefixe + ligand_name})")
+            prefixe_ligand = coeff_name1[coeff*n/x] 
+            name += bridging + prefixe_ligand + ligand_name
 
-    # 4. We add the metal name and the charge
+    # 6. We add the metal name and already put the capital at the begining (avoid interaction between .capitalize and roman numbers)
     name += metal_name
-    name += (f"({complexe_charge(formula)})")
+    name = name.capitalize()
+
+    # 7. We add the charge according to preference selected in the site (roman/int)
+    charge_int = complexe_charge(formula)
+    charge_roman = roman.toRoman(metal_charge(formula))
+    name += (f"({charge_int})")
+    #name += (f"({charge_roman})")
+    if len(metals) == 2:
+        name += ")"
+        
     return name
 
 
-
-
-
-
-# ----------------------------------------------------------------------------------------------------------------#
+# =============================================================================================================================================================== #
 
 # Final function which prints all the relevant information about the coordination compound
 def analyze_complexe(formula):
+    parse_elements(formula)
+    lines = []
+
+    #Formule
+    lines.append(f"Formula : {formula}")
 
     # Nomenclature
-    print(f"Name : {naming_compound(formula)} ")
+    name = naming_compound(formula)
+    lines.append(f"IUPAC Name : {name}")
 
     # Metal charge part
     metals = parse_metal(formula)
     charge = metal_charge(formula) 
-    if charge > 0:
-        print(f"Metal : {metals[0]} {charge}+")
-    elif charge == 0:  
-        print(f"Metal : {metals[0]} {charge}")
+    charge_str = f"{charge}+" if charge > 0 else f"{charge}"
+    lines.append(f"Metal : {metals[0]} ({charge_str})")
     
     # Electronic structure part
-    list = electronic_structure(formula)
-    print(f"Metal electronic structure : [{list[0]}] {list[1]}s{list[2]} {list[1]-1}d{list[3]}")
+    e_list = electronic_structure(formula)
+    lines.append(f"Electronic structure : [{e_list[0]}] {e_list[1]}s{e_list[2]} {e_list[1]-1}d{e_list[3]}")
 
     # Electrons counting part
-    print(f"Electron count : {electron_count(formula)}")
+    count = electron_count(formula)
+    lines.append(f"Electron count : {count}")
+
+    return "\n".join(lines)
+
+formula = "[Co(CO)6]"
+
+#print(parse_metal(formula))
+#print(parse_ligands(formula))
+#print(ligands_list(formula))
+#print(complexe_charge(formula))
+#print(parse_elements(formula))
+#print(ligands_charge(formula))
+#print(oxidation_state(formula))
+#print(metal_charge(formula))
+#print(count_bridging_ligands(formula))
+#print(bond_order(formula))
+#print(naming_compound(formula))
+
+print(analyze_complexe(formula))

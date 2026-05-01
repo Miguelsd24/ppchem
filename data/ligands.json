@@ -159,7 +159,7 @@
     "donor_e": 2
     },
     "NO+": {
-    "name": "nitrosyl (linear)",
+    "name": "nitrosyl(linear)",
     "SMILES": "[N+]#O",
     "denticity": 1,
     "donor_atoms": ["N"],
@@ -168,7 +168,7 @@
     "donor_e": 2
     },
     "NO": {
-    "name": "nitrosyl (bent)",
+    "name": "nitrosyl(bent)",
     "SMILES": "[N+]=O",
     "type": "X",
     "denticity": 1,
@@ -216,10 +216,11 @@
     "donor_atoms": ["P"],
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "coeff": "yes"
     },
     "C10H8N2": {
-    "name": "2,2'-pyridine",
+    "name": "2,2'-bipyridine",
     "SMILES": "c1ccc(nc1)-c2cccc[n+]2",
     "type": "L",
     "denticity": 2,
@@ -227,7 +228,8 @@
     "abbr": "bipy",
     "charge": 0,
     "bridging_e": 4,
-    "donor_e": 4
+    "donor_e": 4,
+    "coeff": "yes"
     },
     "NH3": {
     "name": "ammine",
@@ -239,7 +241,7 @@
     "bridging_e": 2,
     "donor_e": 2
     },
-    "MeNH2": {
+    "CH3NH2": {
     "name": "methylamine",
     "SMILES": "[CN]",
     "type": "L",
@@ -247,7 +249,9 @@
     "donor_atoms": ["N"],
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "coeff": "yes",
+    "abbr": "MeNH2"
     },
     "NH2": {
     "name": "amido",
@@ -289,7 +293,8 @@
     "abbr": "en",
     "charge": 0,
     "bridging_e": 4,
-    "donor_e": 4
+    "donor_e": 4,
+    "coeff": "yes"
     },
     "C12H24O6": {
     "name": "18-crown-6",
@@ -300,7 +305,8 @@
     "abbr": "18C6",
     "charge": 0,
     "donor_e": 12,
-    "bridging": 12
+    "bridging": 12,
+    "coeff": "yes"
     },
     "C5H11N": {
     "name": "piperidine",
@@ -311,7 +317,8 @@
     "abbr": "pip",
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "coeff": "yes"
     },
     "C5H5N": {
     "name": "pyridine",
@@ -322,7 +329,8 @@
     "abbr": "py",
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "coeff": "yes"
     },
     "C2O4": {
     "name": "oxalato",
@@ -333,7 +341,8 @@
     "charge": -2,
     "abbr": "ox",
     "bridging_e": 4,
-    "donor_e": 4
+    "donor_e": 4,
+    "coeff": "yes"
     },
     "C10H16N2O8": {
     "name": "ethylenediaminetetraacetato",
@@ -344,7 +353,8 @@
     "charge": -4,
     "abbr": "edta",
     "bridging_e": 12,
-    "donor_e": 12
+    "donor_e": 12,
+    "coeff": "yes"
     },
     "C5H7O2": {
     "name": "acetylacetonato",
@@ -355,7 +365,8 @@
     "charge": -1,
     "abbr": "acac",
     "bridging_e": 6,
-    "donor_e": 4
+    "donor_e": 4,
+    "coeff": "yes"
     },
     "C5H5": {
     "name": "cyclopentadienyl",
@@ -366,7 +377,8 @@
     "donor_atoms": ["pi"],
     "abbr": "Cp",
     "bridging_e": 6,
-    "donor_e": 6
+    "donor_e": 6,
+    "coeff": "yes"
     },
     "C3H5": {
     "name": "allyl",
@@ -376,6 +388,7 @@
     "charge": -1,
     "donor_atoms": ["C","C","C"],
     "bridging_e": 4,
-    "donor_e": 4
+    "donor_e": 4,
+    "coeff": "yes"
     }
 }
