@@ -348,7 +348,6 @@ def naming_compound(formula):
     ligands_with_coeffs = []
     name = ""
     mu = "-" + "\u03bc" + "-"
-    n = 1
     last_parenthesis =  False
 
     # 2. We indentify the the bridging ligands by transforming their coefficient to a negative value (no chimical sense just easier to inditify later)
@@ -380,12 +379,13 @@ def naming_compound(formula):
                 prefixe_ligand = coeff_name1[coeff*-1]
                 name += bridging + prefixe_ligand + ligand_name
 
+    n = 1
     #------------- 2 METALS ---------------#
     if len(metals) == 2 and len(ligands)-count_bridging_ligands(formula) > 0:
         name += coeff_name2[2] + "("
         n = 2
         last_parenthesis =  True
-    else:
+    elif len(metals) == 2 and len(ligands)-count_bridging_ligands(formula) == 0:
         name += coeff_name1[2]
 
     #----------- TERMINAL LIGANDS---------------#
@@ -428,28 +428,28 @@ def naming_compound(formula):
 
 stereoisomers_dico = {
     "Ma6": 1,
-    "Ma5b": 1,
+    "Ma5b1": 1,
     "Ma4b2": 2,
     "Ma3b3": 2,
-    "Ma4bc": 2,
-    "Ma3bcd": 5,
-    "Ma2bcde": 15,
-    "Mabcdef": 30,
+    "Ma4b1c1": 2,
+    "Ma3b1c1d1": 5,
+    "Ma2b1c1d1e1": 15,
+    "Ma1b1c1d1e1f1": 30,
     "Ma2b2c2": 6,
-    "Ma2b2cd": 8
+    "Ma2b2c1d1": 8
 }
 
 enantiomers_dico = {
     "Ma6": 0,
-    "Ma5b": 0,
+    "Ma5b1": 0,
     "Ma4b2": 0,
     "Ma3b3": 0,
-    "Ma4bc": 0,
-    "Ma3bcd": 1,
-    "Ma2bcde": 6,
-    "Mabcdef": 15,
+    "Ma4b1c1": 0,
+    "Ma3b1c1d1": 1,
+    "Ma2b1c1d1e1": 6,
+    "Ma1b1c1d1e1f1": 15,
     "Ma2b2c2": 1,
-    "Ma2b2cd": 2
+    "Ma2b2c1d1": 2
 }
 
 
@@ -498,11 +498,15 @@ def analyze_complexe(formula):
     lines.append(f"* **Electron count** : {count}")
 
     # Isomers
-
     if isomers(formula)[0] == None or isomers(formula)[1] == None:
         lines.append("* **Isomers:** The number of isomers of this compound is not specified")
     else:
         lines.append(f"* **Isomers:** This compound has {isomers(formula)[0]} stereoisomers and {isomers(formula)[1]} enantiomeres pairs")
+
+    #Remarks
+    lines.append("* **Remarks:** ... ")
+
+
 
     return lines, "\n".join(lines)
 
