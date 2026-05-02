@@ -1,4 +1,6 @@
 import sys
+import os
+import numpy as np
 import re
 import json
 from pathlib import Path
@@ -517,6 +519,7 @@ def show_analysis(formula):
 
 #formula = "[Co2(m-OH)(m-NH2)(NH3)8]4+"
 
+
 #print(clean_formula(formula))
 #print(parse_metal(formula))
 #print(parse_ligands(formula))
@@ -531,3 +534,218 @@ def show_analysis(formula):
 #print(naming_compound(formula))
 
 #print(analyze_complexe(formula))
+
+
+
+# =============================================================================================================================================================== #
+# =============================================================================================================================================================== #
+# =============================================================================================================================================================== #
+# 3D part of the code
+# =============================================================================================================================================================== #
+# =============================================================================================================================================================== #
+# =============================================================================================================================================================== #
+
+
+from ase import Atoms
+from ase.visualize import view
+from ase.data import covalent_radii, atomic_numbers
+from pyrolite.geochem.ind import get_ionic_radii
+
+
+formula = "[Co(CN)4(N3)2]"
+
+#------------------------------------------------------------
+#------------------------------------------------------------
+#GEOMETRY ---- METAL - LIGAND -------------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+def linear(r):
+    return [
+        (r, 0, 0),
+        (-r, 0, 0)
+    ]
+
+
+def tetrahedral(r):
+    base = np.array([
+        [ 1,  1,  1],
+        [-1, -1,  1],
+        [-1,  1, -1],
+        [ 1, -1, -1]
+    ])
+    
+    base = base / np.linalg.norm(base[0])  # normalisation
+    base = r * base
+    
+    return [tuple(v) for v in base]
+
+
+def octahedral(r):
+    return [
+        ( r, 0, 0),
+        (-r, 0, 0),
+        (0,  r, 0),
+        (0, -r, 0),
+        (0, 0,  r),
+        (0, 0, -r)
+    ]
+
+
+def trigonal_planar(r):
+    return [
+        ( r, 0, 0),
+        (-r/2,  r*np.sqrt(3)/2, 0),
+        (-r/2, -r*np.sqrt(3)/2, 0)
+    ]
+
+
+def trigonal_bipyramidal(r):
+    return [
+        (0, 0, r),
+        (0, 0, -r),
+        (r, 0, 0),
+        (r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), 0),
+        (r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), 0)
+    ]
+
+
+def square_planar(r):
+    array = [( r, 0, 0),
+            (-r, 0, 0),
+            (0,  r, 0),
+            (0, -r, 0)]
+    return array
+
+
+def find_geometry(formula, r):
+    cn = len(ligands_list(formula))
+    if cn == 1: 
+        return [(r,0,0)]
+    elif cn == 2: 
+        return linear(r)
+    elif cn == 3: 
+        return trigonal_planar(r)
+    elif cn == 4 and oxidation_state(formula) == 8: 
+        return square_planar(r)
+    elif cn == 4 and not oxidation_state(formula) == 8:
+        return tetrahedral(r)
+    elif cn == 5:
+        return trigonal_bipyramidal(r)
+    elif cn == 6:
+        return octahedral(r)
+    else:
+        raise ValueError("Error: The visualisation 3D does not work for CN over 6")
+
+#------------------------------------------------------------
+#------------------------------------------------------------
+# GEOMETRY INTERNE ---- LIGANDS -----------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+
+def ligand_linear(ligand, ligand_coord, r):
+    metal = ([0,0,0])
+    ligand_position = np.array(ligand_coord)
+
+    vector = ligand_position - metal
+    v = vector / np.linalg.norm(vector) 
+
+    inter_distance = data_ligands[ligand]["inter_distance"]
+    position = (v*(inter_distance + r))
+    return [tuple(float(x) for x in position)]
+
+
+def ligand_dlinear(ligand, ligand_coord, r):
+    metal = ([0,0,0])
+    ligand_position = np.array(ligand_coord)
+    vector = ligand_position - metal
+    v = vector / np.linalg.norm(vector) 
+
+    inter_distance = data_ligands[ligand]["inter_distance"]
+    inter_distance2 = data_ligands[ligand]["inter_distance2"] 
+    position1 = (v*(inter_distance + r))
+    position2 = (v*(inter_distance2 + inter_distance + r))
+    return [tuple(float(x) for x in position1)] + [tuple(float(x) for x in position2)]
+
+
+def get_geometry(ligand_input):
+    geometry = data_ligands[ligand_input].get("geometry")
+    if geometry != None:
+        return geometry
+    return False
+
+
+#------------------------------------------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+
+
+def atoms_position_and_bond(formula):
+    r = 1.7
+    bonding = []
+    nb_of_atoms = 0
+    position = [(0,0,0)]
+    big_array = find_geometry(formula, r)
+    ligand_list = ligands_list(formula)
+    for i, ligand in enumerate(ligand_list):
+        if get_geometry(ligand) == "linear":
+           nb_of_atoms += 2
+           position += [big_array[i]]
+           position += ligand_linear(ligand, big_array[i], r)
+           bonding += (0,nb_of_atoms-1)
+        elif get_geometry(ligand) == "dlinear":
+            nb_of_atoms += 3
+            position += [big_array[i]]
+            position += ligand_dlinear(ligand, big_array[i], r)
+            bonding += (0,nb_of_atoms-2)
+        else:
+            print("NOOOOOO")
+    return position, bonding
+
+
+def get_atoms(ligand):
+    atoms = re.findall(r'[A-Z][a-z]?\d*', ligand)
+    
+    result = []
+    for atom in atoms:
+        match = re.match(r'([A-Z][a-z]?)(\d*)', atom)
+        symbol = match.group(1)
+        count = int(match.group(2)) if match.group(2) else 1
+        
+        result.extend([symbol] * count)
+    
+    return result
+
+
+def atom_symbols(formula):
+    metal = parse_metal(formula)
+    atoms_list = metal
+
+    ligand_list = ligands_list(formula)
+    for ligand in ligand_list:
+        atoms_list += get_atoms(ligand)
+    return atoms_list
+
+
+compound = Atoms(atom_symbols(formula), positions= atoms_position_and_bond(formula)[0])
+view(compound)
+
+
+"""
+def metal_radii(formula):
+    metal = parse_metal(formula)[0]
+    coordination = len(ligands_list(formula))
+    charge = metal_charge(formula)
+    radii = get_ionic_radii(metal, charge, coordination)
+    return radii
+def ligand_radii(formula):
+    ligands = ligands_list(formula)
+    r = 0
+    for ligand in ligands:
+        if data_ligands[ligand].get("radii") != False:
+            r += data_ligands[ligand]["radii"]
+        else:
+            donor_atom = data_ligands[ligand]["donor_atoms"][0]
+            r += covalent_radii[atomic_numbers[donor_atom]]
+    return r/len(ligands)
+"""

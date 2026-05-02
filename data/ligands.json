@@ -6,7 +6,8 @@
     "denticity": 1,
     "donor_e": 2,
     "donor_atoms": ["H"],
-    "charge": -1
+    "charge": -1,
+    "radii" : 1.5
     },
     "F": {
     "name": "fluoro",
@@ -26,7 +27,8 @@
     "donor_e": 2,
     "donor_atoms": ["Cl"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "radii" : 1.5
     },
     "Br": {
     "name": "bromo",
@@ -76,7 +78,10 @@
     "donor_e": 2,
     "donor_atoms": ["N"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "inter_distance": 1.15,
+    "inter_distance2": 1.15,
+    "geometry": "dlinear"
     },
     "CN": {
     "name": "cyano",
@@ -86,7 +91,9 @@
     "donor_atoms": ["C"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "inter_distance": 1.15,
+    "geometry": "linear"
     },
     "NC": {
     "name": "cyano",
