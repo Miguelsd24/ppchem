@@ -215,6 +215,16 @@ def build_3d_safe(metal, ligands):
 
         return mol
 
+<<<<<<< HEAD
     except Exception as e:
         print("[3D ERROR]", e)
         return None
+=======
+    mol = build_complex(
+        "Fe",
+        [("N", 6)]   # ex: Fe(NH3)6
+    )
+
+    out = os.path.join(BASE_DIR, "complex.sdf")
+    save_sdf(mol, out)
+>>>>>>> main

@@ -18,11 +18,9 @@ def test_string_for_int(num):
     
     return coeff
 
-n=2
-m=float(n)
-print(m.is_integer())
+import numpy as np
 
 
 
-ligand = "m-ligand"
-print(ligand[0:])
+position = [(0,0,0)] + [(1,1,1)]
+print(position)
