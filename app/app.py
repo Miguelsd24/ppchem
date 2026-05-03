@@ -67,7 +67,6 @@ if st.button("Analysis"):
     if coord_compound:
         try:
             st.session_state.analysis_result = cc.analyze_complexe(coord_compound)[0]
-            st.success("Successful analysis")
         except ValueError as e:
             st.error(str(e))
             st.session_state.analysis_result = None
@@ -80,6 +79,7 @@ if st.button("Analysis"):
 if st.session_state.analysis_result:
     for line in st.session_state.analysis_result:
         st.write(line)
+    st.success("Successful analysis")
 
 
 st.divider()
@@ -99,7 +99,6 @@ if submit:
     if coord_compound:
         try:
             st.session_state.compound_ase = cc.create_compound_render(coord_compound)
-            st.success("Successful render")
         except ValueError as e:
             st.error(str(e))
             st.session_state.analysis_result = None
@@ -112,6 +111,8 @@ if submit:
 
 if st.session_state.compound_ase:
     render_molecule(st.session_state.compound_ase)
+    st.success("Successful render")
+
 
 st.divider()
 
