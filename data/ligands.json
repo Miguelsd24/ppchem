@@ -7,7 +7,7 @@
     "donor_e": 2,
     "donor_atoms": ["H"],
     "charge": -1,
-    "radii" : 1.5
+    "geometry": "sphere"
     },
     "F": {
     "name": "fluoro",
@@ -17,7 +17,8 @@
     "donor_e": 2,
     "donor_atoms": ["F"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "geometry": "sphere"
     },
     "Cl": {
     "name": "chloro",
@@ -28,7 +29,7 @@
     "donor_atoms": ["Cl"],
     "charge": -1,
     "bridging_e": 4,
-    "radii" : 1.5
+    "geometry": "sphere"
     },
     "Br": {
     "name": "bromo",
@@ -38,7 +39,8 @@
     "donor_e": 2,
     "donor_atoms": ["Br"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "geometry": "sphere"
     },
     "I": {
     "name": "iodo",
@@ -48,7 +50,8 @@
     "donor_e": 2,
     "donor_atoms": ["I"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "geometry": "sphere"
     },
     "At": {
     "name": "astatide",
@@ -58,7 +61,8 @@
     "donor_e": 2,
     "donor_atoms": ["At"],
     "charge": -1,
-    "bridging_e": 4
+    "bridging_e": 4,
+    "geometry": "sphere"
     },
     "N": {
     "name": "nitrido",
@@ -68,7 +72,8 @@
     "donor_e": 6,
     "donor_atoms": ["N"],
     "charge": -3,
-    "bridging_e": 8
+    "bridging_e": 8,
+    "geometry": "sphere"
     },
     "N3": {
     "name": "azido",
@@ -103,7 +108,9 @@
     "donor_atoms": ["N"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "inter_distance": 1.15,
+    "geometry": "linear"
     },
     "SCN": {
     "name": "thiocyano",
@@ -113,7 +120,10 @@
     "donor_atoms": ["S"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "inter_distance": 1.8,
+    "inter_distance2": 1.16,
+    "geometry": "dlinear"
     },
     "NCS": {
     "name": "isothiocyano",
@@ -123,7 +133,10 @@
     "donor_atoms": ["N"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "inter_distance": 1.38,
+    "inter_distance2": 1.54,
+    "geometry": "dlinear"
     },
     "OH": {
     "name": "hydroxo",
@@ -133,7 +146,9 @@
     "donor_atoms": ["O"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "linear",
+    "inter_distance": 0.96
     },
     "H2O": {
     "name": "aqua",
@@ -143,7 +158,10 @@
     "donor_atoms": ["O"],
     "charge": 0,
     "bridging_e": 4,
-    "donor_e": 2   
+    "donor_e": 2,
+    "geometry": "bent", 
+    "inter_distance": 0.96,
+    "inter_distance2": 0.96
     },
     "CO": {
     "name": "carbonyl",
@@ -153,7 +171,9 @@
     "donor_atoms": ["C"],
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "linear",
+    "inter_distance": 1.43
     },
     "CS": {
     "name": "thiocarbonyl",
@@ -163,7 +183,9 @@
     "donor_atoms": ["C"],
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "linear",
+    "inter_distance": 1.81
     },
     "NO+": {
     "name": "nitrosyl(linear)",
@@ -172,7 +194,9 @@
     "donor_atoms": ["N"],
     "charge": 1,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "linear",
+    "inter_distance": 1.15
     },
     "NO": {
     "name": "nitrosyl(bent)",
@@ -193,7 +217,10 @@
     "charge": -1,
     "bridging_e": 4,
     "donor_e": 2,
-    "chelating": 4
+    "chelating": 4,
+    "geometry": "bent",
+    "inter_distance": 1.20,
+    "inter_distance2": 1.20
     },
     "ONO": {
     "name": "nitrito",
@@ -207,7 +234,7 @@
     "chelating": 4
     },
     "PR3": {
-    "name": "phosphine",
+    "name": "phosphines",
     "SMILES": "[P]",
     "type": "L",
     "denticity": 1,
@@ -215,6 +242,18 @@
     "charge": 0,
     "bridging_e": 2,
     "donor_e": 2
+    },
+    "PH3": {
+    "name": "phosphine",
+    "SMILES": "[P]",
+    "type": "L",
+    "denticity": 1,
+    "donor_atoms": ["P"],
+    "charge": 0,
+    "bridging_e": 2,
+    "donor_e": 2,
+    "geometry": "tetrahedral",
+    "inter_distance": 1.42
     },
     "PPh3": {
     "name": "triphenylphosphane",
@@ -246,7 +285,9 @@
     "donor_atoms": ["N"],
     "charge": 0,
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "tetrahedral",
+    "inter_distance": 1.04
     },
     "CH3NH2": {
     "name": "methylamine",
@@ -268,7 +309,10 @@
     "donor_atoms": ["N"],
     "charge": -1,
     "bridging_e": 4,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "bent",
+    "inter_distance": 1.04,
+    "inter_distance2": 1.04
     },
     "NH": {
     "name": "imido",
@@ -278,7 +322,9 @@
     "donor_atoms": ["N"],
     "charge": -2,
     "bridging_e": 4,
-    "donor_e": 4
+    "donor_e": 4,
+    "geometry": "linear",
+    "inter_distance": 1.04
     },
     "CH3": {
     "name": "methyl",
@@ -289,7 +335,9 @@
     "charge": -1,
     "abbr": "Me",
     "bridging_e": 2,
-    "donor_e": 2
+    "donor_e": 2,
+    "geometry": "tetrahedral",
+    "inter_distance": 1.09
     },
     "CH2NH2NH2CH2": {
     "name": "ethylenediamine",

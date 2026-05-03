@@ -30,6 +30,18 @@ with open(BASE_DIR / "data" / "ligands.json") as f:
 
 # The first part of this file focuses on the formula format processing, along with the calculations (e.g. electron counting, oxidation state of the metal, ...)
 
+
+
+##################################################################### TO DO <
+def fomula_input_verification(formula):
+    type_input = type(formula)
+    if type_input != str:
+        raise ValueError("Error: Formula must be a string")
+    return True
+##################################################################### TO DO <
+
+
+
 # Function which process the formula to have a better looking LaTeX formula
 def clean_formula(formula):
     clean_formula = re.sub(r"m-", r"μ-", formula)
@@ -383,11 +395,12 @@ def naming_compound(formula):
 
     n = 1
     #------------- 2 METALS ---------------#
-    if len(metals) == 2 and len(ligands)-count_bridging_ligands(formula) > 0:
+    
+    if len(metals) == 2 and len(ligands_list(formula))-count_bridging_ligands(formula) > 0:
         name += coeff_name2[2] + "("
         n = 2
         last_parenthesis =  True
-    elif len(metals) == 2 and len(ligands)-count_bridging_ligands(formula) == 0:
+    elif len(metals) == 2 and len(ligands_list(formula))-count_bridging_ligands(formula) == 0: # If there is only bridging ligands we use the first set of prefixes
         name += coeff_name1[2]
 
     #----------- TERMINAL LIGANDS---------------#
@@ -424,8 +437,8 @@ def naming_compound(formula):
         name = name[1:]
 
     return name
-
-
+formula = "[Mo2(m-NH3)2(CO)10]"
+print(naming_compound(formula))
 # =============================================================================================================================================================== #
 
 stereoisomers_dico = {
@@ -438,7 +451,8 @@ stereoisomers_dico = {
     "Ma2b1c1d1e1": 15,
     "Ma1b1c1d1e1f1": 30,
     "Ma2b2c2": 6,
-    "Ma2b2c1d1": 8
+    "Ma2b2c1d1": 8,
+    "Ma3b2c1": 3
 }
 
 enantiomers_dico = {
@@ -451,21 +465,27 @@ enantiomers_dico = {
     "Ma2b1c1d1e1": 6,
     "Ma1b1c1d1e1f1": 15,
     "Ma2b2c2": 1,
-    "Ma2b2c1d1": 2
+    "Ma2b2c1d1": 2,
+    "Ma3b2c1": 0
 }
 
 
 def isomers(formula):
     key = ""
+    number = []
     alphabet = string.ascii_lowercase
     data = (parse_ligands(formula))
     if len(parse_metal(formula)) == 1:
         key += "M"
     else:
         key += "M2"
-    for n in range(len(data[0])):
+    for n in range(len(data[1])):
+        number.append(int(data[1][n]))
+    number.sort(reverse=True)
+    for n in range(len(data[1])):
         letter = alphabet[n]
-        key += letter + str(data[1][n])
+        key += letter + str(number[n])
+
     stereo = stereoisomers_dico.get(key)
     enantio = enantiomers_dico.get(key)
     return stereo, enantio
@@ -506,7 +526,8 @@ def analyze_complexe(formula):
         lines.append(f"* **Isomers:** This compound has {isomers(formula)[0]} stereoisomers and {isomers(formula)[1]} enantiomeres pairs")
 
     #Remarks
-    lines.append("* **Remarks:** ... ")
+    
+    lines.append("* **Remarks:** ")
 
 
 
@@ -552,13 +573,12 @@ from ase.data import covalent_radii, atomic_numbers
 from pyrolite.geochem.ind import get_ionic_radii
 
 
-formula = "[Co(CN)4(N3)2]"
-
 #------------------------------------------------------------
 #------------------------------------------------------------
 #GEOMETRY ---- METAL - LIGAND -------------------------------
 #------------------------------------------------------------
 #------------------------------------------------------------
+
 def linear(r):
     return [
         (r, 0, 0),
@@ -643,11 +663,8 @@ def find_geometry(formula, r):
 #------------------------------------------------------------
 
 def ligand_linear(ligand, ligand_coord, r):
-    metal = ([0,0,0])
     ligand_position = np.array(ligand_coord)
-
-    vector = ligand_position - metal
-    v = vector / np.linalg.norm(vector) 
+    v = ligand_position / np.linalg.norm(ligand_position) 
 
     inter_distance = data_ligands[ligand]["inter_distance"]
     position = (v*(inter_distance + r))
@@ -655,10 +672,8 @@ def ligand_linear(ligand, ligand_coord, r):
 
 
 def ligand_dlinear(ligand, ligand_coord, r):
-    metal = ([0,0,0])
     ligand_position = np.array(ligand_coord)
-    vector = ligand_position - metal
-    v = vector / np.linalg.norm(vector) 
+    v = ligand_position / np.linalg.norm(ligand_position) 
 
     inter_distance = data_ligands[ligand]["inter_distance"]
     inter_distance2 = data_ligands[ligand]["inter_distance2"] 
@@ -667,14 +682,64 @@ def ligand_dlinear(ligand, ligand_coord, r):
     return [tuple(float(x) for x in position1)] + [tuple(float(x) for x in position2)]
 
 
-def get_geometry(ligand_input):
+def ligand_bent(ligand, ligand_coord, r):
+    ligand_position = np.array(ligand_coord)
+    v = ligand_position / np.linalg.norm(ligand_position) 
+
+    inter_distance = data_ligands[ligand]["inter_distance"]
+    inter_distance2 = data_ligands[ligand]["inter_distance2"]
+
+    if abs(v[0]) > 0.1:
+        temp_vec = np.array([0, 1, 0])
+    else:
+        temp_vec = np.array([1, 0, 0])
+
+    perp = np.cross(v, temp_vec)
+    perp /= np.linalg.norm(perp)
+
+    theta = np.deg2rad(60)
+    position1 = (np.cos(theta)*inter_distance + r)*v + (np.sin(theta)*inter_distance)*perp
+    position2 = (np.cos(theta)*inter_distance2 + r)*v + (-np.sin(theta)*inter_distance2)*perp
+    print(position1, position2)
+    return [tuple(float(x) for x in position1)] + [tuple(float(x) for x in position2)]
+
+
+def ligand_tetrahedral(ligand, ligand_coord, r):
+    ligand_position = np.array(ligand_coord)
+    v = ligand_position / np.linalg.norm(ligand_position) 
+
+    inter_distance = data_ligands[ligand]["inter_distance"]
+
+    if abs(v[0]) > 0.1:
+        temp_vec = np.array([0, 1, 0])
+    else:
+        temp_vec = np.array([1, 0, 0])
+
+    u = np.cross(v, temp_vec)
+    u /= np.linalg.norm(u)
+    w = np.cross(v, u)
+
+    positions = []
+    theta = np.deg2rad(-54.75)
+    for i in range(3):
+        phi = np.deg2rad(i * 120)
+        pos = ((np.cos(theta)*inter_distance + r)*v + np.sin(theta) * np.cos(phi) * inter_distance* u + np.cos(theta) * np.sin(phi) * inter_distance * w)
+        positions.append(tuple(float(x) for x in pos))  
+    
+    return positions
+
+
+def get_geometry_ligand(ligand_input):
     geometry = data_ligands[ligand_input].get("geometry")
     if geometry != None:
         return geometry
     return False
 
-
 #------------------------------------------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+#------------------------------------------------------------
+#-------- 3D visualisation and coumpound creation -----------
 #------------------------------------------------------------
 #------------------------------------------------------------
 #------------------------------------------------------------
@@ -688,32 +753,50 @@ def atoms_position_and_bond(formula):
     big_array = find_geometry(formula, r)
     ligand_list = ligands_list(formula)
     for i, ligand in enumerate(ligand_list):
-        if get_geometry(ligand) == "linear":
+        if get_geometry_ligand(ligand) == "sphere":
+            nb_of_atoms += 1
+            position += [big_array[i]]
+            bonding += (0,nb_of_atoms)
+        elif get_geometry_ligand(ligand) == "linear":
            nb_of_atoms += 2
            position += [big_array[i]]
            position += ligand_linear(ligand, big_array[i], r)
            bonding += (0,nb_of_atoms-1)
-        elif get_geometry(ligand) == "dlinear":
+        elif get_geometry_ligand(ligand) == "dlinear":
             nb_of_atoms += 3
             position += [big_array[i]]
             position += ligand_dlinear(ligand, big_array[i], r)
             bonding += (0,nb_of_atoms-2)
+        elif get_geometry_ligand(ligand) == "bent":
+            nb_of_atoms += 3
+            position += [big_array[i]]
+            position += ligand_bent(ligand, big_array[i], r)
+            bonding += (0,nb_of_atoms-2)
+        elif get_geometry_ligand(ligand) == "tetrahedral":
+            nb_of_atoms += 4
+            position += [big_array[i]]
+            position += ligand_tetrahedral(ligand, big_array[i], r)
+            bonding += (0,nb_of_atoms-3)
         else:
-            print("NOOOOOO")
+            raise ValueError("Error: Geometry of the ligand not available in 3D")
     return position, bonding
 
 
-def get_atoms(ligand):
-    atoms = re.findall(r'[A-Z][a-z]?\d*', ligand)
-    
-    result = []
+def get_atoms(ligand_input):
+    ligand_info = data_ligands.get(ligand_input)
+    donor_atom = ligand_info.get("donor_atoms")
+    result = [donor_atom[0]] if donor_atom[0] else []
+    atoms = re.findall(r'[A-Z][a-z]?\d*', ligand_input)
+
     for atom in atoms:
         match = re.match(r'([A-Z][a-z]?)(\d*)', atom)
         symbol = match.group(1)
         count = int(match.group(2)) if match.group(2) else 1
-        
-        result.extend([symbol] * count)
-    
+
+        if symbol == donor_atom[0]:
+            continue
+        else:
+            result.extend([symbol] * count)
     return result
 
 
@@ -727,8 +810,10 @@ def atom_symbols(formula):
     return atoms_list
 
 
-compound = Atoms(atom_symbols(formula), positions= atoms_position_and_bond(formula)[0])
-view(compound)
+def create_compound_render(formula):
+    compound = Atoms(atom_symbols(formula), positions= atoms_position_and_bond(formula)[0])
+    return compound 
+
 
 
 """
@@ -738,6 +823,7 @@ def metal_radii(formula):
     charge = metal_charge(formula)
     radii = get_ionic_radii(metal, charge, coordination)
     return radii
+
 def ligand_radii(formula):
     ligands = ligands_list(formula)
     r = 0
