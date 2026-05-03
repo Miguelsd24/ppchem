@@ -251,21 +251,23 @@ def oxidation_state(formula):
     if ox_state < 0 or ox_state > 10:
         raise ValueError(f"Error: There is too extreme charge")
     return ox_state
-
+    
 # Function which does the electron counting
 def electron_count(formula):
-    electrons = oxidation_state(formula)*len(parse_metal(formula))
-    ligands = ligands_list(formula)
+    metal = parse_metal(formula)[0]
+    d = oxidation_state(formula)
 
-    for ligand in ligands:
+    electrons = d
+
+    for ligand in ligands_list(formula):
         if ligand.startswith("m-"):
             electrons += data_ligands[ligand[2:]]["bridging_e"]
         else:
             electrons += data_ligands[ligand]["donor_e"]
-    if bond_order(formula) > 0:
-        electrons += 2*bond_order(formula)
 
-    return electrons // len(parse_metal(formula))
+    electrons += 2 * bond_order(formula)
+
+    return int(electrons)
 
 # Function which calulate the electroni structure of the metal
 def electronic_structure(formula):
@@ -423,7 +425,67 @@ def naming_compound(formula):
 
     return name
 
+# =========================
+# STABILITY MODULE (NEW)
+# =========================
 
+def ligand_field_strength(formula):
+    """
+    Estimation simple du champ de ligand (qualitative -> numérique)
+    """
+    ligands = ligands_list(formula)
+
+    field_score = 0
+
+    for lig in ligands:
+        if lig.startswith("m-"):
+            lig = lig[2:]
+
+        info = data_ligands.get(lig, {})
+
+        # classification simple (tu peux enrichir plus tard)
+        if info.get("field") == "strong":
+            field_score += 2
+        elif info.get("field") == "medium":
+            field_score += 1
+        else:
+            field_score += 0
+
+    return field_score
+
+
+def crystal_field_stabilization(formula):
+    """
+    Approximation CFSE (très simplifiée)
+    """
+    d = oxidation_state(formula)
+    electrons = electron_count(formula)
+
+    # approximation: d electron count influence
+    return (electrons - 6) * ligand_field_strength(formula)
+
+
+def stability_index(formula):
+    """
+    Score global de stabilité (0-100)
+    """
+    cfse = crystal_field_stabilization(formula)
+    charge = abs(complexe_charge(formula))
+    lig_score = ligand_field_strength(formula)
+
+    score = 50
+
+    # CFSE stabilise
+    score += cfse * 5
+
+    # charge élevée = moins stable
+    score -= charge * 5
+
+    # ligands forts stabilisent
+    score += lig_score * 3
+
+    # clamp 0-100
+    return max(0, min(100, score))
 # =============================================================================================================================================================== #
 
 stereoisomers_dico = {
@@ -497,16 +559,18 @@ def analyze_complexe(formula):
     count = electron_count(formula)
     lines.append(f"* **Electron count** : {count}")
 
-    # Isomers
+     # Isomers
     if isomers(formula)[0] == None or isomers(formula)[1] == None:
         lines.append("* **Isomers:** The number of isomers of this compound is not specified")
     else:
         lines.append(f"* **Isomers:** This compound has {isomers(formula)[0]} stereoisomers and {isomers(formula)[1]} enantiomeres pairs")
 
-    #Remarks
+    # Remarks
     lines.append("* **Remarks:** ... ")
 
-
+        # Stability (NEW)
+    stability = stability_index(formula)
+    lines.append(f"* **Stability index** : {stability}/100")
 
     return lines, "\n".join(lines)
 
@@ -514,7 +578,9 @@ def analyze_complexe(formula):
 def show_analysis(formula):
     return display(Markdown(analyze_complexe(formula)[1]))
 
-
+resultat = analyze_complexe("[Fe(CN)6]3-")
+for ligne in resultat[0]:
+    print(ligne)
 #formula = "[Co2(m-OH)(m-NH2)(NH3)8]4+"
 
 #print(clean_formula(formula))
